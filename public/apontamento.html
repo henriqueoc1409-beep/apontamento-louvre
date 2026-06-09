@@ -631,6 +631,7 @@ function startApp(){
   document.getElementById('app').style.display='block';
   document.getElementById('user-name-display').textContent=currentUser.nome;
   document.getElementById('user-email-display').textContent=currentUser.email;
+  refreshAdminUI();
   initPkgs();
   goPage('dashboard');
 }
@@ -660,6 +661,7 @@ function goPage(name){
   if(name==='apontamento'){populateAptSelects();renderAptFolders();renderStatusHoje()}
   if(name==='relatorio'){populateRelFilters();renderRel()}
   if(name==='dashboard'){renderDash()}
+  if(name==='admin'){renderAdmin()}
 }
 
 // ══════════════════════════════════
