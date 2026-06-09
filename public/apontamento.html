@@ -1145,15 +1145,20 @@ function renderDashCalendar(){
   let html=dias.map(d=>`<div style="text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px">${d}</div>`).join('');
   const firstDow=new Date(y,m-1,1).getDay();
   for(let i=0;i<firstDow;i++)html+=`<div></div>`;
+  const tod=today();
   for(let d=1;d<=daysInMonth;d++){
     const dt=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dayApts=list.filter(a=>a.data===dt);
     const isTod=dt===today();
-    let cls='empty';
-    if(clist.length&&dayApts.length){
-      const colabsAptados=new Set(dayApts.map(a=>a.colabId));
+    const isFuture=dt>tod;
+    let cls;
+    if(isFuture){cls='future'}
+    else if(!clist.length){cls='empty'}
+    else if(!dayApts.length){cls='has-missing'}
+    else{
       const full=clist.every(c=>dayApts.some(a=>a.colabId===c.id&&a.periodo==='manha')&&dayApts.some(a=>a.colabId===c.id&&a.periodo==='tarde'));
-      cls=full?'has-full':colabsAptados.size>0?'has-partial':'empty';
+      const someAptados=clist.some(c=>dayApts.some(a=>a.colabId===c.id));
+      cls=full?'has-full':someAptados?'has-partial':'has-missing';
     }
     html+=`<div class="dash-day ${cls}${isTod?' today':''}" title="${fmtD(dt)}">${d}</div>`;
   }
