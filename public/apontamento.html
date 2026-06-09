@@ -730,6 +730,7 @@ function renderColabs(){
 function openEditColab(id){
   const c=(ls(K.colabs)||[]).find(c=>c.id===id);
   if(!c)return;
+  populateFuncSelects();
   document.getElementById('edit-id').value=id;
   document.getElementById('edit-nome').value=c.nome;
   document.getElementById('edit-func').value=c.func||'';
