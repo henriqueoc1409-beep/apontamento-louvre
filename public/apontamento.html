@@ -323,13 +323,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     <div class="fg fg2">
       <div class="field"><label>Nome completo</label><input id="c-nome" placeholder="Ex: João Silva"/></div>
       <div class="field"><label>Função</label>
-        <select id="c-func">
-          <option value="">— selecione —</option>
-          <option>Pedreiro</option><option>Servente</option><option>Eletricista</option>
-          <option>Armador</option><option>Encanador</option><option>Carpinteiro</option>
-          <option>Pintor</option><option>Azulejista</option><option>Gesseiro</option>
-          <option>Encarregado</option><option>Mestre de Obras</option><option>Outro</option>
-        </select>
+        <div style="display:flex;gap:6px">
+          <select id="c-func" style="flex:1"><option value="">— selecione —</option></select>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addCustomFunc()" title="Adicionar nova função">+ Nova</button>
+        </div>
       </div>
     </div>
     <div class="fg fg2">
