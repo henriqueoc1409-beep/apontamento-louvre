@@ -266,6 +266,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       Relatório
     </button>
+    <button class="nav-item" onclick="goPage('admin')" id="nav-admin" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1l3 6 6 .9-4.5 4.4 1 6.2L12 15.8 6.5 18.5l1-6.2L3 7.9 9 7z"/></svg>
+      Admin
+      <span id="admin-badge" style="margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;display:none"></span>
+    </button>
   </div>
   <div class="sidebar-user">
     <div class="sidebar-user-name" id="user-name-display">—</div>
