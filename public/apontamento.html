@@ -507,6 +507,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   <div id="rel-content"></div>
 </div>
 
+<!-- ADMIN -->
+<div class="page" id="page-admin">
+  <div class="page-title">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1l3 6 6 .9-4.5 4.4 1 6.2L12 15.8 6.5 18.5l1-6.2L3 7.9 9 7z"/></svg>
+    Administração de Acessos
+  </div>
+  <div class="alert alert-info">Você é o administrador geral. Aprove ou rejeite as solicitações de acesso abaixo.</div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-title">Solicitações pendentes (<span id="admin-pending-count">0</span>)</div>
+    <div id="admin-pending-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Usuários aprovados</div>
+    <div id="admin-approved-list"></div>
+  </div>
+</div>
+
 </main>
 </div>
 </div>
