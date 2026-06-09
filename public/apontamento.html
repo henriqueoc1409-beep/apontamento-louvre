@@ -387,7 +387,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   <div class="alert alert-info" id="apt-alert-date"></div>
   <!-- STATUS DO DIA -->
   <div class="card" style="margin-bottom:1.25rem">
-    <div class="card-title" style="margin-bottom:.75rem">Status dos colaboradores — hoje</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:.75rem;flex-wrap:wrap">
+      <div class="card-title" style="margin-bottom:0">Status dos colaboradores</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label style="font-size:12px;color:var(--text2);font-weight:500">Data:</label>
+        <input id="apt-status-date" type="date" onchange="renderStatusHoje()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font)"/>
+      </div>
+    </div>
     <div id="apt-status-hoje" class="status-grid"></div>
   </div>
   <!-- FORM MANHÃ -->
