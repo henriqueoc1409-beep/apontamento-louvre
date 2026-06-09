@@ -266,6 +266,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       Relatório
     </button>
+    <button class="nav-item" onclick="goPage('admin')" id="nav-admin" style="display:none">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1l3 6 6 .9-4.5 4.4 1 6.2L12 15.8 6.5 18.5l1-6.2L3 7.9 9 7z"/></svg>
+      Admin
+      <span id="admin-badge" style="margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;display:none"></span>
+    </button>
   </div>
   <div class="sidebar-user">
     <div class="sidebar-user-name" id="user-name-display">—</div>
@@ -502,6 +507,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   <div id="rel-content"></div>
 </div>
 
+<!-- ADMIN -->
+<div class="page" id="page-admin">
+  <div class="page-title">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1l3 6 6 .9-4.5 4.4 1 6.2L12 15.8 6.5 18.5l1-6.2L3 7.9 9 7z"/></svg>
+    Administração de Acessos
+  </div>
+  <div class="alert alert-info">Você é o administrador geral. Aprove ou rejeite as solicitações de acesso abaixo.</div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-title">Solicitações pendentes (<span id="admin-pending-count">0</span>)</div>
+    <div id="admin-pending-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Usuários aprovados</div>
+    <div id="admin-approved-list"></div>
+  </div>
+</div>
+
 </main>
 </div>
 </div>
@@ -604,11 +626,91 @@ function setMsg(id,txt,type){
   el.className='auth-msg '+type;el.textContent=txt;
 }
 
+// ══════════════════════════════════
+// ADMIN — aprovação de usuários
+// ══════════════════════════════════
+function isAdmin(){return currentUser&&currentUser.email===ADMIN_EMAIL}
+
+function refreshAdminUI(){
+  const navBtn=document.getElementById('nav-admin');
+  const badge=document.getElementById('admin-badge');
+  if(!navBtn)return;
+  if(isAdmin()){
+    navBtn.style.display='';
+    const pend=(ls(K.users)||[]).filter(u=>!u.aprovado).length;
+    if(pend>0){badge.style.display='';badge.textContent=pend}
+    else badge.style.display='none';
+  }else{
+    navBtn.style.display='none';
+  }
+}
+
+function renderAdmin(){
+  if(!isAdmin()){
+    document.getElementById('page-admin').innerHTML='<div class="alert alert-warn">Acesso restrito ao administrador geral.</div>';
+    return;
+  }
+  const users=ls(K.users)||[];
+  const pending=users.filter(u=>!u.aprovado);
+  const approved=users.filter(u=>u.aprovado);
+  document.getElementById('admin-pending-count').textContent=pending.length;
+  const pEl=document.getElementById('admin-pending-list');
+  if(!pending.length){pEl.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Nenhuma solicitação pendente.</div>'}
+  else{
+    pEl.innerHTML=`<table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Solicitado em</th><th style="text-align:right">Ações</th></tr></thead><tbody>${pending.map(u=>`<tr>
+      <td style="font-weight:600">${u.nome}</td>
+      <td>${u.email}</td>
+      <td style="font-size:12px;color:var(--text2)">${u.id?new Date(u.id).toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-success btn-sm" onclick="approveUser(${u.id})">✓ Aprovar</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectUser(${u.id})">✗ Rejeitar</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+  }
+  const aEl=document.getElementById('admin-approved-list');
+  if(!approved.length){aEl.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Nenhum usuário aprovado.</div>'}
+  else{
+    aEl.innerHTML=`<table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th style="text-align:right">Ações</th></tr></thead><tbody>${approved.map(u=>`<tr>
+      <td style="font-weight:600">${u.nome}</td>
+      <td>${u.email}</td>
+      <td>${u.email===ADMIN_EMAIL?'<span class="badge b-purple">Admin geral</span>':'<span class="badge b-blue">Usuário</span>'}</td>
+      <td style="text-align:right;white-space:nowrap">
+        ${u.email===ADMIN_EMAIL?'<span style="color:var(--text3);font-size:12px">protegido</span>':`<button class="btn btn-ghost btn-sm" onclick="revokeUser(${u.id})">Revogar acesso</button> <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">Excluir</button>`}
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+  }
+}
+
+function approveUser(id){
+  const users=ls(K.users)||[];
+  const i=users.findIndex(u=>u.id===id);if(i<0)return;
+  users[i].aprovado=true;ss(K.users,users);
+  renderAdmin();refreshAdminUI();
+}
+function rejectUser(id){
+  if(!confirm('Rejeitar e remover esta solicitação?'))return;
+  ss(K.users,(ls(K.users)||[]).filter(u=>u.id!==id));
+  renderAdmin();refreshAdminUI();
+}
+function revokeUser(id){
+  if(!confirm('Revogar o acesso deste usuário? Ele precisará ser aprovado novamente.'))return;
+  const users=ls(K.users)||[];
+  const i=users.findIndex(u=>u.id===id);if(i<0)return;
+  users[i].aprovado=false;ss(K.users,users);
+  renderAdmin();refreshAdminUI();
+}
+function deleteUser(id){
+  if(!confirm('Excluir definitivamente este usuário?'))return;
+  ss(K.users,(ls(K.users)||[]).filter(u=>u.id!==id));
+  renderAdmin();refreshAdminUI();
+}
+
 function startApp(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('user-name-display').textContent=currentUser.nome;
   document.getElementById('user-email-display').textContent=currentUser.email;
+  refreshAdminUI();
   initPkgs();
   goPage('dashboard');
 }
@@ -638,6 +740,7 @@ function goPage(name){
   if(name==='apontamento'){populateAptSelects();renderAptFolders();renderStatusHoje()}
   if(name==='relatorio'){populateRelFilters();renderRel()}
   if(name==='dashboard'){renderDash()}
+  if(name==='admin'){renderAdmin()}
 }
 
 // ══════════════════════════════════
