@@ -651,6 +651,36 @@ function colabs(){return(ls(K.colabs)||[]).sort((a,b)=>a.nome.localeCompare(b.no
 function pkgs(){return(ls(K.pkgs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function apts(){return ls(K.apts)||[]}
 
+// FUNÇÕES (cargos) — lista editável
+const DEFAULT_FUNCS=['Pedreiro','Servente','Eletricista','Armador','Encanador','Carpinteiro','Pintor','Azulejista','Gesseiro','Encarregado','Mestre de Obras','Outro'];
+function funcsList(){
+  const cur=ls(K.funcs);
+  if(!cur){ss(K.funcs,DEFAULT_FUNCS);return DEFAULT_FUNCS.slice()}
+  return cur;
+}
+function populateFuncSelects(){
+  const list=funcsList();
+  ['c-func','edit-func'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const cur=sel.value;
+    const placeholder=id==='c-func'?'<option value="">— selecione —</option>':'';
+    sel.innerHTML=placeholder+list.map(f=>`<option>${f}</option>`).join('');
+    if(cur)sel.value=cur;
+  });
+}
+function addCustomFunc(isEdit){
+  const nome=(prompt('Nome da nova função:')||'').trim();
+  if(!nome)return;
+  const list=funcsList();
+  if(list.some(f=>f.toLowerCase()===nome.toLowerCase())){alert('Essa função já existe.');return}
+  list.push(nome);
+  ss(K.funcs,list);
+  populateFuncSelects();
+  const sel=document.getElementById(isEdit?'edit-func':'c-func');
+  if(sel)sel.value=nome;
+}
+
 // ══════════════════════════════════
 // COLABORADORES
 // ══════════════════════════════════
