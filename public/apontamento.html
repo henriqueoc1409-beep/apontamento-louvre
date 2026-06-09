@@ -633,7 +633,7 @@ function goPage(name){
   document.getElementById('nav-'+name).classList.add('active');
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  if(name==='colaboradores'){renderColabs()}
+  if(name==='colaboradores'){populateFuncSelects();renderColabs()}
   if(name==='pacotes'){renderPkgs()}
   if(name==='apontamento'){populateAptSelects();renderAptFolders();renderStatusHoje()}
   if(name==='relatorio'){populateRelFilters();renderRel()}
