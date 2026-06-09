@@ -827,6 +827,8 @@ function populateAptSelects(){
     if(cp){sp.value=cp;loadSvcs(pfx)}
   });
   document.getElementById('apt-alert-date').textContent='Apontando para: '+fmtD(d);
+  const sd=document.getElementById('apt-status-date');
+  if(sd&&!sd.value)sd.value=d;
   renderStatusHoje();
 }
 
@@ -839,12 +841,14 @@ function loadSvcs(pfx){
 }
 
 function renderStatusHoje(){
-  const d=today();
+  const sd=document.getElementById('apt-status-date');
+  const d=(sd&&sd.value)?sd.value:today();
   const aptHoje=apts().filter(a=>a.data===d);
   const list=colabs();
   const el=document.getElementById('apt-status-hoje');
   if(!list.length){el.innerHTML='<p style="color:var(--text3);font-size:13px">Nenhum colaborador cadastrado.</p>';return}
-  el.innerHTML=list.map(c=>{
+  const header=`<div style="grid-column:1/-1;font-size:12px;color:var(--text2);margin-bottom:4px">Mostrando status de <strong style="color:var(--text)">${fmtD(d)}</strong> · ${list.length} colaborador(es)</div>`;
+  el.innerHTML=header+list.map(c=>{
     const am=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='manha');
     const pm=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='tarde');
     const cls=am&&pm?'status-ok':am||pm?'status-warn':'status-missing';
