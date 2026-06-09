@@ -508,12 +508,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     <div class="fg fg1">
       <div class="field"><label>Nome</label><input id="edit-nome"/></div>
       <div class="field"><label>Função</label>
-        <select id="edit-func">
-          <option>Pedreiro</option><option>Servente</option><option>Eletricista</option>
-          <option>Armador</option><option>Encanador</option><option>Carpinteiro</option>
-          <option>Pintor</option><option>Azulejista</option><option>Gesseiro</option>
-          <option>Encarregado</option><option>Mestre de Obras</option><option>Outro</option>
-        </select>
+        <div style="display:flex;gap:6px">
+          <select id="edit-func" style="flex:1"></select>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addCustomFunc(true)" title="Adicionar nova função">+ Nova</button>
+        </div>
       </div>
       <div class="field"><label>Salário mensal (R$) <span style="color:#FFD740;font-size:11px">— apontamentos anteriores serão recalculados</span></label><input id="edit-sal" type="number"/></div>
       <div class="field"><label>Carga horária mensal (h)</label><input id="edit-h" type="number"/></div>
