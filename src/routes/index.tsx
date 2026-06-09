@@ -3,27 +3,21 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Apontamento de Obra — Louvre | Três Incorporadora" },
+      { name: "description", content: "Sistema de apontamento de obra do empreendimento Louvre — Três Incorporadora." },
+      { property: "og:title", content: "Apontamento de Obra — Louvre" },
+      { property: "og:description", content: "Sistema de apontamento de obra do empreendimento Louvre — Três Incorporadora." },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <iframe
+      src="/apontamento.html"
+      title="Apontamento de Obra — Louvre"
+      style={{ border: 0, width: "100vw", height: "100vh", display: "block" }}
+    />
   );
 }
