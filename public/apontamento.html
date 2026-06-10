@@ -575,6 +575,39 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   </div>
 </div>
 
+<!-- MODAL EDITAR APONTAMENTO -->
+<div class="modal-overlay" id="modal-apt">
+  <div class="modal">
+    <div class="modal-title">Editar apontamento</div>
+    <input type="hidden" id="ea-id"/>
+    <div class="fg fg1">
+      <div class="field"><label>Tipo</label>
+        <select id="ea-tipo" onchange="toggleEaFalta()">
+          <option value="trabalho">Trabalho</option>
+          <option value="falta">Falta</option>
+        </select>
+      </div>
+      <div class="field"><label>Data</label><input id="ea-data" type="date"/></div>
+      <div class="field"><label>Período</label>
+        <select id="ea-periodo"><option value="manha">Manhã</option><option value="tarde">Tarde</option></select>
+      </div>
+      <div class="field"><label>Colaborador</label><select id="ea-colab"></select></div>
+    </div>
+    <div id="ea-trabalho-fields">
+      <div class="fg fg1">
+        <div class="field"><label>Pacote</label><select id="ea-pkg" onchange="loadEaSvcs()"></select></div>
+        <div class="field"><label>Serviço</label><select id="ea-svc"></select></div>
+        <div class="field"><label>Local trabalhado</label><select id="ea-local"></select></div>
+        <div class="field"><label>Horas</label><input id="ea-horas" type="number" step="0.5"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-apt')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditApt()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════
 // DATA — usa localStorage como "banco"
@@ -1091,6 +1124,7 @@ function renderPeriodSection(items,periodo){
         <span style="font-size:12px;color:var(--text2)">sem custo</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="openEditApt('${a.id}')">Editar</button>
         <button class="btn btn-danger btn-sm" onclick="delApt(${a.id})">✕</button>
       </div>
     </div>`:`<div class="apt-row">
@@ -1103,6 +1137,7 @@ function renderPeriodSection(items,periodo){
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="apt-cost">${BRL(a.custo)}</span>
+        <button class="btn btn-ghost btn-sm" onclick="openEditApt('${a.id}')">Editar</button>
         <button class="btn btn-danger btn-sm" onclick="delApt(${a.id})">✕</button>
       </div>
     </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">Sem registros</div>'}
@@ -1117,6 +1152,76 @@ function toggleFolder(id){
 function delApt(id){
   if(!confirm('Remover apontamento?'))return;
   ss(K.apts,apts().filter(a=>a.id!==id));
+  renderAptFolders();renderStatusHoje();
+}
+
+const LOCAIS_OBRA=['FUNDAÇÃO','SUBSOLO 2','SUBSOLO 1','TERREO','G1','G2','3º LAZER','3º TIPO','4º TIPO','5º TIPO','6º TIPO','7º TIPO','8º TIPO','9º TIPO','10º TIPO','11º TIPO','12º TIPO','13º TIPO','14º TIPO','15º TIPO','16º TIPO','17º TIPO','18º TIPO','19º TIPO','20º TIPO','21º TIPO','22º TIPO','23º TIPO','24º TIPO','25º TIPO','26º TIPO','27º TIPO','ROOFTOP','ÁTICO','HALL','SST','TESTES','FACHADA'];
+
+function openEditApt(id){
+  const a=apts().find(x=>String(x.id)===String(id));
+  if(!a)return;
+  document.getElementById('ea-id').value=String(a.id);
+  document.getElementById('ea-tipo').value=a.falta?'falta':'trabalho';
+  document.getElementById('ea-data').value=a.data;
+  document.getElementById('ea-periodo').value=a.periodo;
+  const sc=document.getElementById('ea-colab');
+  sc.innerHTML=colabs().map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  sc.value=a.colabId;
+  const sp=document.getElementById('ea-pkg');
+  sp.innerHTML='<option value="">— selecione —</option>'+pkgs().map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+  sp.value=a.pkgId||'';
+  loadEaSvcs();
+  document.getElementById('ea-svc').value=a.svc||'';
+  const sl=document.getElementById('ea-local');
+  sl.innerHTML='<option value="">— selecione —</option>'+LOCAIS_OBRA.map(l=>`<option>${l}</option>`).join('');
+  sl.value=a.local||'';
+  document.getElementById('ea-horas').value=a.horas||0;
+  toggleEaFalta();
+  document.getElementById('modal-apt').classList.add('open');
+}
+
+function loadEaSvcs(){
+  const pid=document.getElementById('ea-pkg').value;
+  const pkg=(ls(K.pkgs)||[]).find(p=>p.id==pid);
+  const sel=document.getElementById('ea-svc');
+  sel.innerHTML='<option value="">— selecione —</option>';
+  if(pkg&&(pkg.servicos||[]).length)pkg.servicos.forEach(s=>sel.innerHTML+=`<option>${s}</option>`);
+}
+
+function toggleEaFalta(){
+  const isFalta=document.getElementById('ea-tipo').value==='falta';
+  document.getElementById('ea-trabalho-fields').style.display=isFalta?'none':'';
+}
+
+function saveEditApt(){
+  const id=document.getElementById('ea-id').value;
+  const tipo=document.getElementById('ea-tipo').value;
+  const data=document.getElementById('ea-data').value;
+  const periodo=document.getElementById('ea-periodo').value;
+  const colabId=+document.getElementById('ea-colab').value;
+  if(!data||!colabId||!periodo){alert('Data, período e colaborador são obrigatórios.');return}
+  const list=apts();
+  const idx=list.findIndex(x=>String(x.id)===String(id));
+  if(idx<0)return;
+  // checar duplicidade (outro registro do mesmo colab/data/periodo)
+  const dup=list.find(x=>String(x.id)!==String(id)&&x.colabId===colabId&&x.data===data&&x.periodo===periodo);
+  if(dup){alert('Já existe apontamento desse colaborador para esse período/dia.');return}
+  const colab=colabs().find(c=>c.id===colabId);
+  const base={...list[idx],data,periodo,colabId,colabNome:colab?colab.nome:list[idx].colabNome};
+  if(tipo==='falta'){
+    list[idx]={...base,falta:true,pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0};
+  }else{
+    const pkgId=+document.getElementById('ea-pkg').value;
+    const svc=document.getElementById('ea-svc').value;
+    const local=document.getElementById('ea-local').value;
+    const horas=parseFloat(document.getElementById('ea-horas').value)||0;
+    if(!pkgId||!svc||!local||!horas){alert('Pacote, serviço, local e horas são obrigatórios.');return}
+    const pkg=(ls(K.pkgs)||[]).find(p=>p.id===pkgId);
+    const custoH=colab?(colab.sal/colab.h):0;
+    list[idx]={...base,falta:false,pkgId,pkgNome:pkg?pkg.nome:'',svc,local,horas,custoH,custo:custoH*horas};
+  }
+  ss(K.apts,list);
+  closeModal('modal-apt');
   renderAptFolders();renderStatusHoje();
 }
 
