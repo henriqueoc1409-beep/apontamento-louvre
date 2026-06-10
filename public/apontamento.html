@@ -109,12 +109,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 
 /* BADGES */
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.b-blue{background:rgba(41,121,255,.2);color:var(--accent3)}
-.b-green{background:rgba(0,200,83,.15);color:#69F0AE}
-.b-amber{background:rgba(255,179,0,.15);color:#FFD740}
-.b-red{background:rgba(244,67,54,.15);color:#FF8A80}
-.b-teal{background:rgba(0,188,212,.15);color:#84FFFF}
-.b-purple{background:rgba(149,117,205,.2);color:#CE93D8}
+.b-blue{background:rgba(16,16,200,.12);color:#0A0AA0}
+.b-green{background:rgba(0,150,60,.15);color:#1B5E20}
+.b-amber{background:rgba(180,90,0,.15);color:#7A3E00}
+.b-red{background:rgba(183,28,28,.12);color:#8B0000}
+.b-teal{background:rgba(0,120,130,.15);color:#00474D}
+.b-purple{background:rgba(106,27,154,.15);color:#4A148C}
+.b-gray{background:rgba(75,88,121,.15);color:#3A445E}
 
 /* TABLE */
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
@@ -141,8 +142,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 .period-section{padding:12px 16px;border-bottom:1px solid var(--border)}
 .period-section:last-child{border-bottom:none}
 .period-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.period-manha{color:#FFD740}
-.period-tarde{color:#82B1FF}
+.period-manha{color:#7A3E00}
+.period-tarde{color:#0A0AA0}
 .apt-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(15,26,58,.06)}
 .apt-row:last-child{border-bottom:none}
 .apt-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1}
@@ -177,8 +178,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 
 /* ALERT */
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px}
-.alert-info{background:rgba(41,121,255,.15);color:var(--accent3);border:1px solid rgba(41,121,255,.3)}
-.alert-warn{background:rgba(255,179,0,.12);color:#FFD740;border:1px solid rgba(255,179,0,.3)}
+.alert-info{background:rgba(16,16,200,.08);color:#0A0AA0;border:1px solid rgba(16,16,200,.25)}
+.alert-warn{background:rgba(180,90,0,.10);color:#7A3E00;border:1px solid rgba(180,90,0,.30)}
 
 /* DASHBOARD */
 .dash-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -302,7 +303,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       <div style="margin-bottom:.75rem">
         <div class="legend">
           <span><span class="legend-dot" style="background:#69F0AE"></span>Todos apontados</span>
-          <span><span class="legend-dot" style="background:#FFD740"></span>Parcial</span>
+        <span><span class="legend-dot" style="background:#B45309"></span>Parcial</span>
           <span><span class="legend-dot" style="background:#FF8A80"></span>Falta apontamento</span>
         </div>
         <select id="dash-cal-mes" onchange="renderDashCalendar()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:12px;font-family:var(--font)"></select>
@@ -396,14 +397,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       <div class="card-title" style="margin-bottom:0">Status dos colaboradores</div>
       <div style="display:flex;align-items:center;gap:8px">
         <label style="font-size:12px;color:var(--text2);font-weight:500">Data:</label>
-        <input id="apt-status-date" type="date" onchange="renderStatusHoje()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font)"/>
+        <input id="apt-status-date" type="date" onchange="syncAptDate(this.value)" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font)"/>
       </div>
     </div>
     <div id="apt-status-hoje" class="status-grid"></div>
   </div>
   <!-- FORM MANHÃ -->
-  <div class="card" style="margin-bottom:1rem;border-color:rgba(255,215,64,.3)">
-    <div class="card-title" style="color:#FFD740;display:flex;align-items:center;gap:6px">
+  <div class="card" style="margin-bottom:1rem;border-color:rgba(180,90,0,.30)">
+    <div class="card-title" style="color:#7A3E00;display:flex;align-items:center;gap:6px">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
       MANHÃ
     </div>
@@ -440,8 +441,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     </button>
   </div>
   <!-- FORM TARDE -->
-  <div class="card" style="margin-bottom:1.25rem;border-color:rgba(130,177,255,.3)">
-    <div class="card-title" style="color:#82B1FF;display:flex;align-items:center;gap:6px">
+  <div class="card" style="margin-bottom:1rem;border-color:rgba(10,10,160,.30)">
+    <div class="card-title" style="color:#0A0AA0;display:flex;align-items:center;gap:6px">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       TARDE
     </div>
@@ -475,6 +476,29 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     <button class="btn btn-primary" onclick="addApt('tarde')">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Registrar Tarde
+    </button>
+  </div>
+  <!-- FALTA -->
+  <div class="card" style="margin-bottom:1.25rem;border-color:rgba(183,28,28,.30)">
+    <div class="card-title" style="color:#8B0000;display:flex;align-items:center;gap:6px">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      FALTA
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Registre quando o colaborador não comparecer. O dia não será computado no custo.</p>
+    <div class="fg fg3">
+      <div class="field"><label>Data</label><input id="fa-data" type="date"/></div>
+      <div class="field"><label>Colaborador</label><select id="fa-colab"><option value="">— selecione —</option></select></div>
+      <div class="field"><label>Período</label>
+        <select id="fa-per">
+          <option value="dia">Dia inteiro</option>
+          <option value="manha">Só manhã</option>
+          <option value="tarde">Só tarde</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" style="background:#8B0000;color:#fff" onclick="addFalta()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Marcar Falta
     </button>
   </div>
   <!-- FOLDERS -->
@@ -541,7 +565,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
           <button type="button" class="btn btn-ghost btn-sm" onclick="addCustomFunc(true)" title="Adicionar nova função">+ Nova</button>
         </div>
       </div>
-      <div class="field"><label>Salário mensal (R$) <span style="color:#FFD740;font-size:11px">— apontamentos anteriores serão recalculados</span></label><input id="edit-sal" type="number"/></div>
+      <div class="field"><label>Salário mensal (R$) <span style="color:#7A3E00;font-size:11px">— apontamentos anteriores serão recalculados</span></label><input id="edit-sal" type="number"/></div>
       <div class="field"><label>Carga horária mensal (h)</label><input id="edit-h" type="number"/></div>
     </div>
     <div class="modal-footer">
@@ -920,19 +944,26 @@ function renderPkgs(){
 // ══════════════════════════════════
 function populateAptSelects(){
   const d=today();
-  ['am','pm'].forEach(pfx=>{
+  ['am','pm','fa'].forEach(pfx=>{
     document.getElementById(pfx+'-data').value=d;
     const sc=document.getElementById(pfx+'-colab');
     const sp=document.getElementById(pfx+'-pkg');
-    const cc=sc.value,cp=sp.value;
+    const cc=sc.value,cp=sp?sp.value:'';
     sc.innerHTML='<option value="">— selecione —</option>'+colabs().map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-    sp.innerHTML='<option value="">— selecione —</option>'+pkgs().map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+    if(sp)sp.innerHTML='<option value="">— selecione —</option>'+pkgs().map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
     if(cc)sc.value=cc;
-    if(cp){sp.value=cp;loadSvcs(pfx)}
+    if(cp&&sp){sp.value=cp;loadSvcs(pfx)}
   });
   document.getElementById('apt-alert-date').textContent='Apontando para: '+fmtD(d);
   const sd=document.getElementById('apt-status-date');
   if(sd&&!sd.value)sd.value=d;
+  renderStatusHoje();
+}
+
+function syncAptDate(d){
+  if(!d)return;
+  ['am-data','pm-data','fa-data'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=d});
+  document.getElementById('apt-alert-date').textContent='Apontando para: '+fmtD(d);
   renderStatusHoje();
 }
 
@@ -955,8 +986,13 @@ function renderStatusHoje(){
   el.innerHTML=header+list.map(c=>{
     const am=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='manha');
     const pm=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='tarde');
-    const cls=am&&pm?'status-ok':am||pm?'status-warn':'status-missing';
-    const txt=am&&pm?'✓ Manhã e Tarde':am?'⚑ Só manhã':pm?'⚑ Só tarde':'✗ Sem apontamento';
+    const amF=am&&am.falta, pmF=pm&&pm.falta;
+    let cls,txt;
+    if(amF&&pmF){cls='status-missing';txt='✗ Falta (dia)'}
+    else if(am&&pm){cls='status-ok';txt='✓ Manhã e Tarde'+((amF||pmF)?' (c/ falta)':'')}
+    else if(am){cls='status-warn';txt=amF?'✗ Falta manhã':'⚑ Só manhã'}
+    else if(pm){cls='status-warn';txt=pmF?'✗ Falta tarde':'⚑ Só tarde'}
+    else{cls='status-missing';txt='✗ Sem apontamento'}
     return`<div class="status-card ${cls}"><div class="status-name">${c.nome}</div><div class="status-detail">${txt}</div></div>`;
   }).join('');
 }
@@ -966,16 +1002,17 @@ function addApt(periodo){
   const data=document.getElementById(pfx+'-data').value;
   const colabId=+document.getElementById(pfx+'-colab').value;
   const pkgId=+document.getElementById(pfx+'-pkg').value;
-  if(!data||!colabId||!pkgId){alert('Preencha data, colaborador e pacote.');return}
+  const svc=document.getElementById(pfx+'-svc').value;
+  const local=document.getElementById(pfx+'-local').value;
   const horas=parseFloat(document.getElementById(pfx+'-horas').value)||0;
-  if(!horas){alert('Informe as horas trabalhadas.');return}
+  if(!data||!colabId||!pkgId||!svc||!local||!horas){
+    alert('Todos os campos são obrigatórios: data, colaborador, pacote, serviço, local de trabalho e horas.');return;
+  }
   // trava: 1 por periodo por dia
   const exists=apts().find(a=>a.colabId===colabId&&a.data===data&&a.periodo===periodo);
   if(exists){alert('Este colaborador já tem apontamento de '+periodo+' neste dia!');return}
   const colab=colabs().find(c=>c.id===colabId);
   const pkg=(ls(K.pkgs)||[]).find(p=>p.id===pkgId);
-  const svc=document.getElementById(pfx+'-svc').value;
-  const local=document.getElementById(pfx+'-local').value;
   const custoH=colab?(colab.sal/colab.h):0;
   const list=apts();
   list.push({id:Date.now(),data,periodo,colabId,colabNome:colab?colab.nome:'',pkgId,pkgNome:pkg?pkg.nome:'',svc,local,horas,custoH,custo:custoH*horas});
@@ -983,6 +1020,27 @@ function addApt(periodo){
   document.getElementById(pfx+'-horas').value=pfx==='am'?'4':'4';
   document.getElementById(pfx+'-svc').value='';
   document.getElementById(pfx+'-local').value='';
+  renderAptFolders();
+  renderStatusHoje();
+}
+
+function addFalta(){
+  const data=document.getElementById('fa-data').value;
+  const colabId=+document.getElementById('fa-colab').value;
+  const per=document.getElementById('fa-per').value;
+  if(!data||!colabId||!per){alert('Preencha data, colaborador e período.');return}
+  const colab=colabs().find(c=>c.id===colabId);
+  const list=apts();
+  const periodos=per==='dia'?['manha','tarde']:[per];
+  for(const p of periodos){
+    if(list.find(a=>a.colabId===colabId&&a.data===data&&a.periodo===p)){
+      alert('Já existe apontamento de '+p+' para '+(colab?colab.nome:'colaborador')+' neste dia.');return;
+    }
+  }
+  periodos.forEach(p=>{
+    list.push({id:Date.now()+Math.random(),data,periodo:p,colabId,colabNome:colab?colab.nome:'',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0,falta:true});
+  });
+  ss(K.apts,list);
   renderAptFolders();
   renderStatusHoje();
 }
@@ -1026,7 +1084,16 @@ function renderPeriodSection(items,periodo){
   const cls=periodo==='manha'?'period-manha':'period-tarde';
   return`<div class="period-section">
     <div class="period-label ${cls}">${label}</div>
-    ${items.length?items.map(a=>`<div class="apt-row">
+    ${items.length?items.map(a=>a.falta?`<div class="apt-row">
+      <div class="apt-info">
+        <span class="apt-name">${a.colabNome}</span>
+        <span class="badge b-red">FALTA</span>
+        <span style="font-size:12px;color:var(--text2)">sem custo</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-danger btn-sm" onclick="delApt(${a.id})">✕</button>
+      </div>
+    </div>`:`<div class="apt-row">
       <div class="apt-info">
         <span class="apt-name">${a.colabNome}</span>
         <span class="badge b-blue">${a.pkgNome}</span>
