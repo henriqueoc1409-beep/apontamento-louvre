@@ -944,19 +944,26 @@ function renderPkgs(){
 // ══════════════════════════════════
 function populateAptSelects(){
   const d=today();
-  ['am','pm'].forEach(pfx=>{
+  ['am','pm','fa'].forEach(pfx=>{
     document.getElementById(pfx+'-data').value=d;
     const sc=document.getElementById(pfx+'-colab');
     const sp=document.getElementById(pfx+'-pkg');
-    const cc=sc.value,cp=sp.value;
+    const cc=sc.value,cp=sp?sp.value:'';
     sc.innerHTML='<option value="">— selecione —</option>'+colabs().map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-    sp.innerHTML='<option value="">— selecione —</option>'+pkgs().map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+    if(sp)sp.innerHTML='<option value="">— selecione —</option>'+pkgs().map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
     if(cc)sc.value=cc;
-    if(cp){sp.value=cp;loadSvcs(pfx)}
+    if(cp&&sp){sp.value=cp;loadSvcs(pfx)}
   });
   document.getElementById('apt-alert-date').textContent='Apontando para: '+fmtD(d);
   const sd=document.getElementById('apt-status-date');
   if(sd&&!sd.value)sd.value=d;
+  renderStatusHoje();
+}
+
+function syncAptDate(d){
+  if(!d)return;
+  ['am-data','pm-data','fa-data'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=d});
+  document.getElementById('apt-alert-date').textContent='Apontando para: '+fmtD(d);
   renderStatusHoje();
 }
 
@@ -990,16 +997,17 @@ function addApt(periodo){
   const data=document.getElementById(pfx+'-data').value;
   const colabId=+document.getElementById(pfx+'-colab').value;
   const pkgId=+document.getElementById(pfx+'-pkg').value;
-  if(!data||!colabId||!pkgId){alert('Preencha data, colaborador e pacote.');return}
+  const svc=document.getElementById(pfx+'-svc').value;
+  const local=document.getElementById(pfx+'-local').value;
   const horas=parseFloat(document.getElementById(pfx+'-horas').value)||0;
-  if(!horas){alert('Informe as horas trabalhadas.');return}
+  if(!data||!colabId||!pkgId||!svc||!local||!horas){
+    alert('Todos os campos são obrigatórios: data, colaborador, pacote, serviço, local de trabalho e horas.');return;
+  }
   // trava: 1 por periodo por dia
   const exists=apts().find(a=>a.colabId===colabId&&a.data===data&&a.periodo===periodo);
   if(exists){alert('Este colaborador já tem apontamento de '+periodo+' neste dia!');return}
   const colab=colabs().find(c=>c.id===colabId);
   const pkg=(ls(K.pkgs)||[]).find(p=>p.id===pkgId);
-  const svc=document.getElementById(pfx+'-svc').value;
-  const local=document.getElementById(pfx+'-local').value;
   const custoH=colab?(colab.sal/colab.h):0;
   const list=apts();
   list.push({id:Date.now(),data,periodo,colabId,colabNome:colab?colab.nome:'',pkgId,pkgNome:pkg?pkg.nome:'',svc,local,horas,custoH,custo:custoH*horas});
@@ -1007,6 +1015,27 @@ function addApt(periodo){
   document.getElementById(pfx+'-horas').value=pfx==='am'?'4':'4';
   document.getElementById(pfx+'-svc').value='';
   document.getElementById(pfx+'-local').value='';
+  renderAptFolders();
+  renderStatusHoje();
+}
+
+function addFalta(){
+  const data=document.getElementById('fa-data').value;
+  const colabId=+document.getElementById('fa-colab').value;
+  const per=document.getElementById('fa-per').value;
+  if(!data||!colabId||!per){alert('Preencha data, colaborador e período.');return}
+  const colab=colabs().find(c=>c.id===colabId);
+  const list=apts();
+  const periodos=per==='dia'?['manha','tarde']:[per];
+  for(const p of periodos){
+    if(list.find(a=>a.colabId===colabId&&a.data===data&&a.periodo===p)){
+      alert('Já existe apontamento de '+p+' para '+(colab?colab.nome:'colaborador')+' neste dia.');return;
+    }
+  }
+  periodos.forEach(p=>{
+    list.push({id:Date.now()+Math.random(),data,periodo:p,colabId,colabNome:colab?colab.nome:'',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0,falta:true});
+  });
+  ss(K.apts,list);
   renderAptFolders();
   renderStatusHoje();
 }
