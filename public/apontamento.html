@@ -1124,6 +1124,7 @@ function renderPeriodSection(items,periodo){
         <span style="font-size:12px;color:var(--text2)">sem custo</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="openEditApt('${a.id}')">Editar</button>
         <button class="btn btn-danger btn-sm" onclick="delApt(${a.id})">✕</button>
       </div>
     </div>`:`<div class="apt-row">
@@ -1136,6 +1137,7 @@ function renderPeriodSection(items,periodo){
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="apt-cost">${BRL(a.custo)}</span>
+        <button class="btn btn-ghost btn-sm" onclick="openEditApt('${a.id}')">Editar</button>
         <button class="btn btn-danger btn-sm" onclick="delApt(${a.id})">✕</button>
       </div>
     </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">Sem registros</div>'}
