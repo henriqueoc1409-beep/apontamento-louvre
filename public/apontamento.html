@@ -1050,9 +1050,16 @@ function addApt(periodo){
   const list=apts();
   list.push({id:Date.now(),data,periodo,colabId,colabNome:colab?colab.nome:'',pkgId,pkgNome:pkg?pkg.nome:'',svc,local,horas,custoH,custo:custoH*horas});
   ss(K.apts,list);
-  document.getElementById(pfx+'-horas').value=pfx==='am'?'4':'4';
-  document.getElementById(pfx+'-svc').value='';
-  document.getElementById(pfx+'-local').value='';
+  // Espelha os campos para o outro período (manter dados preenchidos)
+  const other=pfx==='am'?'pm':'am';
+  document.getElementById(other+'-data').value=data;
+  document.getElementById(other+'-colab').value=colabId;
+  document.getElementById(other+'-pkg').value=pkgId;
+  loadSvcs(other);
+  // setar serviço após popular as opções
+  setTimeout(()=>{const s=document.getElementById(other+'-svc');if(s)s.value=svc;},0);
+  document.getElementById(other+'-local').value=local;
+  document.getElementById(other+'-horas').value=horas;
   renderAptFolders();
   renderStatusHoje();
 }
