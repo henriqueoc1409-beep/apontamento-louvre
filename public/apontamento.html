@@ -986,8 +986,13 @@ function renderStatusHoje(){
   el.innerHTML=header+list.map(c=>{
     const am=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='manha');
     const pm=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='tarde');
-    const cls=am&&pm?'status-ok':am||pm?'status-warn':'status-missing';
-    const txt=am&&pm?'✓ Manhã e Tarde':am?'⚑ Só manhã':pm?'⚑ Só tarde':'✗ Sem apontamento';
+    const amF=am&&am.falta, pmF=pm&&pm.falta;
+    let cls,txt;
+    if(amF&&pmF){cls='status-missing';txt='✗ Falta (dia)'}
+    else if(am&&pm){cls='status-ok';txt='✓ Manhã e Tarde'+((amF||pmF)?' (c/ falta)':'')}
+    else if(am){cls='status-warn';txt=amF?'✗ Falta manhã':'⚑ Só manhã'}
+    else if(pm){cls='status-warn';txt=pmF?'✗ Falta tarde':'⚑ Só tarde'}
+    else{cls='status-missing';txt='✗ Sem apontamento'}
     return`<div class="status-card ${cls}"><div class="status-name">${c.nome}</div><div class="status-detail">${txt}</div></div>`;
   }).join('');
 }
@@ -1079,7 +1084,16 @@ function renderPeriodSection(items,periodo){
   const cls=periodo==='manha'?'period-manha':'period-tarde';
   return`<div class="period-section">
     <div class="period-label ${cls}">${label}</div>
-    ${items.length?items.map(a=>`<div class="apt-row">
+    ${items.length?items.map(a=>a.falta?`<div class="apt-row">
+      <div class="apt-info">
+        <span class="apt-name">${a.colabNome}</span>
+        <span class="badge b-red">FALTA</span>
+        <span style="font-size:12px;color:var(--text2)">sem custo</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-danger btn-sm" onclick="delApt(${a.id})">✕</button>
+      </div>
+    </div>`:`<div class="apt-row">
       <div class="apt-info">
         <span class="apt-name">${a.colabNome}</span>
         <span class="badge b-blue">${a.pkgNome}</span>
