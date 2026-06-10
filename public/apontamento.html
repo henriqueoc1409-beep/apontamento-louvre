@@ -575,6 +575,39 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   </div>
 </div>
 
+<!-- MODAL EDITAR APONTAMENTO -->
+<div class="modal-overlay" id="modal-apt">
+  <div class="modal">
+    <div class="modal-title">Editar apontamento</div>
+    <input type="hidden" id="ea-id"/>
+    <div class="fg fg1">
+      <div class="field"><label>Tipo</label>
+        <select id="ea-tipo" onchange="toggleEaFalta()">
+          <option value="trabalho">Trabalho</option>
+          <option value="falta">Falta</option>
+        </select>
+      </div>
+      <div class="field"><label>Data</label><input id="ea-data" type="date"/></div>
+      <div class="field"><label>Período</label>
+        <select id="ea-periodo"><option value="manha">Manhã</option><option value="tarde">Tarde</option></select>
+      </div>
+      <div class="field"><label>Colaborador</label><select id="ea-colab"></select></div>
+    </div>
+    <div id="ea-trabalho-fields">
+      <div class="fg fg1">
+        <div class="field"><label>Pacote</label><select id="ea-pkg" onchange="loadEaSvcs()"></select></div>
+        <div class="field"><label>Serviço</label><select id="ea-svc"></select></div>
+        <div class="field"><label>Local trabalhado</label><select id="ea-local"></select></div>
+        <div class="field"><label>Horas</label><input id="ea-horas" type="number" step="0.5"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-apt')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditApt()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════
 // DATA — usa localStorage como "banco"
