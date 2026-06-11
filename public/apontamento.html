@@ -502,11 +502,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     Relatório de Custos
   </div>
   <div class="filter-bar">
-    <div class="field"><label>Mês</label><select id="r-mes" onchange="renderRel()" style="min-width:120px"><option value="">Todos</option></select></div>
+    <div class="field"><label>De</label><input id="r-inicio" type="date" onchange="renderRel()" style="min-width:140px"/></div>
+    <div class="field"><label>Até</label><input id="r-fim" type="date" onchange="renderRel()" style="min-width:140px"/></div>
+    <div class="field"><label>Mês</label><select id="r-mes" onchange="aplicarMesRel()" style="min-width:120px"><option value="">— atalho —</option></select></div>
     <div class="field"><label>Pacote</label><select id="r-pkg" onchange="renderRel()" style="min-width:180px"><option value="">Todos</option></select></div>
     <div class="field"><label>Local</label><select id="r-local" onchange="renderRel()" style="min-width:130px"><option value="">Todos</option></select></div>
     <div class="field"><label>Colaborador</label><select id="r-colab" onchange="renderRel()" style="min-width:160px"><option value="">Todos</option></select></div>
     <div class="field"><label>Serviço</label><select id="r-svc" onchange="renderRel()" style="min-width:160px"><option value="">Todos</option></select></div>
+    <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-ghost btn-sm" onclick="limparFiltrosRel()">Limpar</button></div>
   </div>
   <div class="export-bar">
     <button class="btn btn-ghost btn-sm" onclick="exportExcel()">
