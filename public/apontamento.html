@@ -958,6 +958,75 @@ function delColab(id){
   renderColabs();
 }
 
+// ── Histórico de salários por mês ──
+function openSalHist(id){
+  const c=(ls(K.colabs)||[]).find(c=>c.id===id);
+  if(!c)return;
+  document.getElementById('sh-id').value=id;
+  document.getElementById('sh-nome').textContent=c.nome;
+  document.getElementById('sh-mes').value=(new Date()).toISOString().slice(0,7);
+  document.getElementById('sh-sal').value=c.sal||'';
+  document.getElementById('sh-h').value=c.h||220;
+  renderSalHist();
+  document.getElementById('modal-salhist').classList.add('open');
+}
+function renderSalHist(){
+  const id=+document.getElementById('sh-id').value;
+  const c=(ls(K.colabs)||[]).find(c=>c.id===id);
+  const hist=(c&&c.salHist)?c.salHist.slice().sort((a,b)=>b.mes.localeCompare(a.mes)):[];
+  const el=document.getElementById('sh-list');
+  if(!hist.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:.5rem 0">Sem histórico. O salário atual do cadastro será usado para todos os meses.</div>';return}
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Mês</th><th>Salário</th><th>Carga</th><th>Custo/h</th><th></th></tr></thead><tbody>${
+    hist.map(s=>{const [y,mo]=s.mes.split('-');const nm=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][+mo-1];return`<tr>
+      <td style="font-weight:600">${nm}/${y}</td>
+      <td>${BRL(s.sal)}</td>
+      <td>${s.h}h</td>
+      <td><span class="badge b-blue">${BRL((+s.sal)/(+s.h||1))}/h</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="delSalHist('${s.mes}')">✕</button></td>
+    </tr>`}).join('')
+  }</tbody></table>`;
+}
+function addSalHist(){
+  const id=+document.getElementById('sh-id').value;
+  const mes=document.getElementById('sh-mes').value;
+  const sal=parseFloat(document.getElementById('sh-sal').value)||0;
+  const h=parseFloat(document.getElementById('sh-h').value)||220;
+  if(!mes||!sal||!h){alert('Preencha mês, salário e carga.');return}
+  const list=ls(K.colabs)||[];
+  const idx=list.findIndex(c=>c.id===id);
+  if(idx<0)return;
+  const hist=(list[idx].salHist||[]).filter(s=>s.mes!==mes);
+  hist.push({mes,sal,h});
+  list[idx]={...list[idx],salHist:hist};
+  ss(K.colabs,list);
+  recalcAptsForColab(id);
+  renderSalHist();
+  renderColabs();
+}
+function delSalHist(mes){
+  if(!confirm('Remover este mês do histórico?'))return;
+  const id=+document.getElementById('sh-id').value;
+  const list=ls(K.colabs)||[];
+  const idx=list.findIndex(c=>c.id===id);
+  if(idx<0)return;
+  list[idx]={...list[idx],salHist:(list[idx].salHist||[]).filter(s=>s.mes!==mes)};
+  ss(K.colabs,list);
+  recalcAptsForColab(id);
+  renderSalHist();
+  renderColabs();
+}
+function recalcAptsForColab(id){
+  const colab=(ls(K.colabs)||[]).find(c=>c.id===id);
+  if(!colab)return;
+  const aptList=apts().map(a=>{
+    if(a.colabId!==id||a.falta)return a;
+    const {sal:s,h:hh}=getColabSal(colab,a.data);
+    const cH=hh?s/hh:0;
+    return{...a,custoH:cH,custo:cH*a.horas};
+  });
+  ss(K.apts,aptList);
+}
+
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 
 // ══════════════════════════════════
