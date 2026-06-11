@@ -1331,7 +1331,7 @@ function populateRelFilters(){
   const list=apts();
   const meses=[...new Set(list.map(a=>a.data.slice(0,7)))].sort().reverse();
   const rm=document.getElementById('r-mes');const cm=rm.value;
-  rm.innerHTML='<option value="">Todos</option>'+meses.map(m=>{const[y,mo]=m.split('-');const nm=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][+mo-1];return`<option value="${m}">${nm}/${y}</option>`}).join('');
+  rm.innerHTML='<option value="">— atalho —</option>'+meses.map(m=>{const[y,mo]=m.split('-');const nm=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][+mo-1];return`<option value="${m}">${nm}/${y}</option>`}).join('');
   if(cm)rm.value=cm;
   const rp=document.getElementById('r-pkg');const cp=rp.value;
   rp.innerHTML='<option value="">Todos</option>'+pkgs().map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
