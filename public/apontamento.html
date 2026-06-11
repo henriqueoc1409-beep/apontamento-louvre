@@ -413,27 +413,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       <div class="field"><label>Colaborador</label><select id="am-colab"><option value="">— selecione —</option></select></div>
       <div class="field"><label>Pacote</label><select id="am-pkg" onchange="loadSvcs('am')"><option value="">— selecione —</option></select></div>
     </div>
-    <div class="fg fg3">
+    <div class="fg fg4">
       <div class="field"><label>Serviço</label><select id="am-svc"><option value="">— todos —</option></select></div>
       <div class="field"><label>Local trabalhado</label>
         <select id="am-local">
           <option value="">— selecione —</option>
-          <option>FUNDAÇÃO</option><option>SUBSOLO 2</option><option>SUBSOLO 1</option>
-          <option>TERREO</option><option>G1</option><option>G2</option>
-          <option>3º LAZER</option><option>3º TIPO</option><option>4º TIPO</option>
-          <option>5º TIPO</option><option>6º TIPO</option><option>7º TIPO</option>
-          <option>8º TIPO</option><option>9º TIPO</option><option>10º TIPO</option>
-          <option>11º TIPO</option><option>12º TIPO</option><option>13º TIPO</option>
-          <option>14º TIPO</option><option>15º TIPO</option><option>16º TIPO</option>
-          <option>17º TIPO</option><option>18º TIPO</option><option>19º TIPO</option>
-          <option>20º TIPO</option><option>21º TIPO</option><option>22º TIPO</option>
-          <option>23º TIPO</option><option>24º TIPO</option><option>25º TIPO</option>
-          <option>26º TIPO</option><option>27º TIPO</option>
-          <option>ROOFTOP</option><option>ÁTICO</option><option>HALL</option>
-          <option>SST</option><option>TESTES</option><option>FACHADA</option>
         </select>
       </div>
       <div class="field"><label>Horas</label><input id="am-horas" type="number" step="0.5" value="4"/></div>
+      <div class="field"><label>Status do serviço</label>
+        <select id="am-status">
+          <option value="">— selecione —</option>
+          <option value="andamento">Em andamento</option>
+          <option value="paralisado">Paralisado</option>
+          <option value="finalizado">Finalizado</option>
+        </select>
+      </div>
     </div>
     <button class="btn btn-primary" onclick="addApt('manha')">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -451,27 +446,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       <div class="field"><label>Colaborador</label><select id="pm-colab"><option value="">— selecione —</option></select></div>
       <div class="field"><label>Pacote</label><select id="pm-pkg" onchange="loadSvcs('pm')"><option value="">— selecione —</option></select></div>
     </div>
-    <div class="fg fg3">
+    <div class="fg fg4">
       <div class="field"><label>Serviço</label><select id="pm-svc"><option value="">— todos —</option></select></div>
       <div class="field"><label>Local trabalhado</label>
         <select id="pm-local">
           <option value="">— selecione —</option>
-          <option>FUNDAÇÃO</option><option>SUBSOLO 2</option><option>SUBSOLO 1</option>
-          <option>TERREO</option><option>G1</option><option>G2</option>
-          <option>3º LAZER</option><option>3º TIPO</option><option>4º TIPO</option>
-          <option>5º TIPO</option><option>6º TIPO</option><option>7º TIPO</option>
-          <option>8º TIPO</option><option>9º TIPO</option><option>10º TIPO</option>
-          <option>11º TIPO</option><option>12º TIPO</option><option>13º TIPO</option>
-          <option>14º TIPO</option><option>15º TIPO</option><option>16º TIPO</option>
-          <option>17º TIPO</option><option>18º TIPO</option><option>19º TIPO</option>
-          <option>20º TIPO</option><option>21º TIPO</option><option>22º TIPO</option>
-          <option>23º TIPO</option><option>24º TIPO</option><option>25º TIPO</option>
-          <option>26º TIPO</option><option>27º TIPO</option>
-          <option>ROOFTOP</option><option>ÁTICO</option><option>HALL</option>
-          <option>SST</option><option>TESTES</option><option>FACHADA</option>
         </select>
       </div>
       <div class="field"><label>Horas</label><input id="pm-horas" type="number" step="0.5" value="4"/></div>
+      <div class="field"><label>Status do serviço</label>
+        <select id="pm-status">
+          <option value="">— selecione —</option>
+          <option value="andamento">Em andamento</option>
+          <option value="paralisado">Paralisado</option>
+          <option value="finalizado">Finalizado</option>
+        </select>
+      </div>
     </div>
     <button class="btn btn-primary" onclick="addApt('tarde')">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
