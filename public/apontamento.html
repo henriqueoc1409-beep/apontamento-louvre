@@ -895,14 +895,16 @@ function renderColabs(){
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3)">Nenhum colaborador cadastrado.</div>';return}
   el.innerHTML=`<div class="card" style="padding:0;overflow:hidden">
     <table class="tbl">
-      <thead><tr><th>Nome</th><th>Função</th><th>Salário/mês</th><th>Carga h/mês</th><th>Custo/h</th><th></th></tr></thead>
+      <thead><tr><th>Nome</th><th>Função</th><th>Salário atual</th><th>Carga h/mês</th><th>Custo/h</th><th>Histórico</th><th></th></tr></thead>
       <tbody>${list.map(c=>`<tr>
         <td style="font-weight:600">${c.nome}</td>
         <td><span class="badge b-teal">${c.func||'—'}</span></td>
         <td>${BRL(c.sal)}</td>
         <td>${c.h}h</td>
         <td><span class="badge b-blue">${BRL(c.sal/c.h)}/h</span></td>
+        <td>${(c.salHist||[]).length?`<span class="badge b-purple">${(c.salHist||[]).length} mês(es)</span>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
         <td style="white-space:nowrap">
+          <button class="btn btn-ghost btn-sm" onclick="openSalHist(${c.id})">Salários/mês</button>
           <button class="btn btn-ghost btn-sm" onclick="openEditColab(${c.id})">Editar</button>
           <button class="btn btn-danger btn-sm" onclick="delColab(${c.id})">Excluir</button>
         </td>
