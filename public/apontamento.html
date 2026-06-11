@@ -1111,17 +1111,19 @@ function addApt(periodo){
   const svc=document.getElementById(pfx+'-svc').value;
   const local=document.getElementById(pfx+'-local').value;
   const horas=parseFloat(document.getElementById(pfx+'-horas').value)||0;
-  if(!data||!colabId||!pkgId||!svc||!local||!horas){
-    alert('Todos os campos são obrigatórios: data, colaborador, pacote, serviço, local de trabalho e horas.');return;
+  const status=document.getElementById(pfx+'-status').value;
+  if(!data||!colabId||!pkgId||!svc||!local||!horas||!status){
+    alert('Todos os campos são obrigatórios: data, colaborador, pacote, serviço, local, horas e status do serviço.');return;
   }
   // trava: 1 por periodo por dia
   const exists=apts().find(a=>a.colabId===colabId&&a.data===data&&a.periodo===periodo);
   if(exists){alert('Este colaborador já tem apontamento de '+periodo+' neste dia!');return}
   const colab=colabs().find(c=>c.id===colabId);
   const pkg=(ls(K.pkgs)||[]).find(p=>p.id===pkgId);
-  const custoH=colab?(colab.sal/colab.h):0;
+  const {sal:cs,h:ch}=getColabSal(colab,data);
+  const custoH=ch?cs/ch:0;
   const list=apts();
-  list.push({id:Date.now(),data,periodo,colabId,colabNome:colab?colab.nome:'',pkgId,pkgNome:pkg?pkg.nome:'',svc,local,horas,custoH,custo:custoH*horas});
+  list.push({id:Date.now(),data,periodo,colabId,colabNome:colab?colab.nome:'',pkgId,pkgNome:pkg?pkg.nome:'',svc,local,horas,custoH,custo:custoH*horas,status});
   ss(K.apts,list);
   // Espelha os campos para o outro período (manter dados preenchidos)
   const other=pfx==='am'?'pm':'am';
@@ -1133,6 +1135,7 @@ function addApt(periodo){
   setTimeout(()=>{const s=document.getElementById(other+'-svc');if(s)s.value=svc;},0);
   document.getElementById(other+'-local').value=local;
   document.getElementById(other+'-horas').value=horas;
+  document.getElementById(other+'-status').value=status;
   renderAptFolders();
   renderStatusHoje();
 }
