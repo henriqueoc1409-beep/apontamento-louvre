@@ -1351,18 +1351,35 @@ function populateRelFilters(){
 }
 
 function getRelDados(){
-  const mes=document.getElementById('r-mes').value;
+  const ini=document.getElementById('r-inicio').value;
+  const fim=document.getElementById('r-fim').value;
   const pkgF=document.getElementById('r-pkg').value;
   const locF=document.getElementById('r-local').value;
   const colabF=document.getElementById('r-colab').value;
   const svcF=document.getElementById('r-svc').value;
   let dados=apts();
-  if(mes)dados=dados.filter(a=>a.data.startsWith(mes));
+  if(ini)dados=dados.filter(a=>a.data>=ini);
+  if(fim)dados=dados.filter(a=>a.data<=fim);
   if(pkgF)dados=dados.filter(a=>a.pkgId==pkgF);
   if(locF)dados=dados.filter(a=>a.local===locF);
   if(colabF)dados=dados.filter(a=>a.colabId==colabF);
   if(svcF)dados=dados.filter(a=>a.svc===svcF);
   return dados;
+}
+
+function aplicarMesRel(){
+  const m=document.getElementById('r-mes').value;
+  if(!m){renderRel();return}
+  const [y,mo]=m.split('-').map(Number);
+  const last=new Date(y,mo,0).getDate();
+  document.getElementById('r-inicio').value=`${y}-${String(mo).padStart(2,'0')}-01`;
+  document.getElementById('r-fim').value=`${y}-${String(mo).padStart(2,'0')}-${String(last).padStart(2,'0')}`;
+  renderRel();
+}
+
+function limparFiltrosRel(){
+  ['r-inicio','r-fim','r-mes','r-pkg','r-local','r-colab','r-svc'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  renderRel();
 }
 
 function renderRel(){
