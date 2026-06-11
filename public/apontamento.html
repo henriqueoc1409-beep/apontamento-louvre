@@ -1257,9 +1257,13 @@ function openEditApt(id){
   loadEaSvcs();
   document.getElementById('ea-svc').value=a.svc||'';
   const sl=document.getElementById('ea-local');
-  sl.innerHTML='<option value="">— selecione —</option>'+LOCAIS_OBRA.map(l=>`<option>${l}</option>`).join('');
+  // locais filtrados pelo pacote
+  const pkgSel=(ls(K.pkgs)||[]).find(p=>p.id==a.pkgId);
+  const locais=pkgSel?parsePkgLocais(pkgSel):LOCAIS_OBRA;
+  sl.innerHTML='<option value="">— selecione —</option>'+locais.map(l=>`<option>${l}</option>`).join('');
   sl.value=a.local||'';
   document.getElementById('ea-horas').value=a.horas||0;
+  document.getElementById('ea-status').value=a.status||'';
   toggleEaFalta();
   document.getElementById('modal-apt').classList.add('open');
 }
@@ -1270,6 +1274,15 @@ function loadEaSvcs(){
   const sel=document.getElementById('ea-svc');
   sel.innerHTML='<option value="">— selecione —</option>';
   if(pkg&&(pkg.servicos||[]).length)pkg.servicos.forEach(s=>sel.innerHTML+=`<option>${s}</option>`);
+  // trava locais pelo pacote
+  const lsel=document.getElementById('ea-local');
+  if(lsel){
+    const cur=lsel.value;
+    const locais=pkg?parsePkgLocais(pkg):[];
+    if(!pkg){lsel.innerHTML='<option value="">— selecione um pacote —</option>';}
+    else if(!locais.length){lsel.innerHTML='<option value="">— sem locais vinculados —</option>';}
+    else{lsel.innerHTML='<option value="">— selecione —</option>'+locais.map(l=>`<option>${l}</option>`).join('');if(cur&&locais.includes(cur))lsel.value=cur;}
+  }
 }
 
 function toggleEaFalta(){
