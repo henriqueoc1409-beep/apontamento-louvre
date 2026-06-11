@@ -1036,6 +1036,49 @@ function loadSvcs(pfx){
   const sel=document.getElementById(pfx+'-svc');
   sel.innerHTML='<option value="">— todos os serviços —</option>';
   if(pkg&&(pkg.servicos||[]).length)pkg.servicos.forEach(s=>sel.innerHTML+=`<option>${s}</option>`);
+  // Trava locais conforme o pacote (EAP)
+  const lsel=document.getElementById(pfx+'-local');
+  if(lsel){
+    const cur=lsel.value;
+    const locais=pkg?parsePkgLocais(pkg):[];
+    if(!pkg){
+      lsel.innerHTML='<option value="">— selecione um pacote primeiro —</option>';
+    }else if(!locais.length){
+      lsel.innerHTML='<option value="">— nenhum local vinculado a este pacote —</option>';
+    }else{
+      lsel.innerHTML='<option value="">— selecione —</option>'+locais.map(l=>`<option>${l}</option>`).join('');
+      if(cur&&locais.includes(cur))lsel.value=cur;
+    }
+  }
+}
+
+// Extrai os locais de um pacote (string com separadores variados) e cruza com LOCAIS_OBRA conhecidos
+function parsePkgLocais(pkg){
+  if(!pkg)return[];
+  const raw=(pkg.local||'').toString().toUpperCase();
+  if(!raw.trim())return[];
+  const tokens=raw.split(/[,;\/]+/).map(t=>t.trim()).filter(Boolean);
+  const out=new Set();
+  tokens.forEach(tok=>{
+    // match exato com LOCAIS_OBRA
+    LOCAIS_OBRA.forEach(l=>{ if(l.toUpperCase()===tok) out.add(l); });
+    // match parcial: token genérico (ex.: "SUBSOLO" → SUBSOLO 1, SUBSOLO 2; "TORRE" → todos os TIPO)
+    if(tok==='SUBSOLO'){['SUBSOLO 1','SUBSOLO 2'].forEach(l=>out.add(l));}
+    if(tok==='G1 G2'){['G1','G2'].forEach(l=>out.add(l));}
+    if(tok==='TORRE'||tok==='TORRE (4º A 27º)'){
+      LOCAIS_OBRA.filter(l=>/TIPO$/.test(l)).forEach(l=>out.add(l));
+    }
+  });
+  return [...out];
+}
+
+// Retorna salário/carga vigente para uma data (YYYY-MM-DD), usando salHist se houver
+function getColabSal(colab,dataStr){
+  if(!colab)return{sal:0,h:1};
+  const mes=(dataStr||'').slice(0,7);
+  const hist=(colab.salHist||[]).slice().filter(s=>s.mes<=mes).sort((a,b)=>b.mes.localeCompare(a.mes));
+  if(hist.length)return{sal:+hist[0].sal||0,h:+hist[0].h||1};
+  return{sal:+colab.sal||0,h:+colab.h||1};
 }
 
 function renderStatusHoje(){
