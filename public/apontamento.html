@@ -1312,10 +1312,12 @@ function saveEditApt(){
     const svc=document.getElementById('ea-svc').value;
     const local=document.getElementById('ea-local').value;
     const horas=parseFloat(document.getElementById('ea-horas').value)||0;
-    if(!pkgId||!svc||!local||!horas){alert('Pacote, serviço, local e horas são obrigatórios.');return}
+    const status=document.getElementById('ea-status').value;
+    if(!pkgId||!svc||!local||!horas||!status){alert('Pacote, serviço, local, horas e status são obrigatórios.');return}
     const pkg=(ls(K.pkgs)||[]).find(p=>p.id===pkgId);
-    const custoH=colab?(colab.sal/colab.h):0;
-    list[idx]={...base,falta:false,pkgId,pkgNome:pkg?pkg.nome:'',svc,local,horas,custoH,custo:custoH*horas};
+    const {sal:cs,h:ch}=getColabSal(colab,data);
+    const custoH=ch?cs/ch:0;
+    list[idx]={...base,falta:false,pkgId,pkgNome:pkg?pkg.nome:'',svc,local,horas,custoH,custo:custoH*horas,status};
   }
   ss(K.apts,list);
   closeModal('modal-apt');
