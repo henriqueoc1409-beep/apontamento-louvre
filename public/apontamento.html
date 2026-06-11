@@ -1216,6 +1216,7 @@ function renderPeriodSection(items,periodo){
         <span class="badge b-blue">${a.pkgNome}</span>
         ${a.svc?`<span class="badge b-teal">${a.svc}</span>`:''}
         ${a.local?`<span class="badge b-amber">${a.local}</span>`:''}
+        ${a.status?`<span class="badge ${a.status==='finalizado'?'b-green':a.status==='paralisado'?'b-red':'b-purple'}">${a.status==='andamento'?'Em andamento':a.status==='paralisado'?'Paralisado':'Finalizado'}</span>`:''}
         <span style="font-size:12px;color:var(--text2)">${a.horas}h</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
