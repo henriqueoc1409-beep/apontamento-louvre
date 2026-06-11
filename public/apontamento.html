@@ -930,16 +930,21 @@ function saveEditColab(){
   const func=document.getElementById('edit-func').value;
   const sal=parseFloat(document.getElementById('edit-sal').value)||0;
   const h=parseFloat(document.getElementById('edit-h').value)||220;
-  const newCustoH=sal/h;
   const list=ls(K.colabs)||[];
   const idx=list.findIndex(c=>c.id===id);
   if(idx<0)return;
   list[idx]={...list[idx],nome,func,sal,h};
   ss(K.colabs,list);
-  // recalcular apontamentos retroativos
+  // recalcular apontamentos retroativos (usando salário do mês correspondente)
+  const colabAtualizado=list[idx];
   const aptList=apts().map(a=>{
-    if(a.colabId===id){
-      return{...a,colabNome:nome,custoH:newCustoH,custo:newCustoH*a.horas};
+    if(a.colabId===id&&!a.falta){
+      const {sal:s,h:hh}=getColabSal(colabAtualizado,a.data);
+      const cH=hh?s/hh:0;
+      return{...a,colabNome:nome,custoH:cH,custo:cH*a.horas};
+    }
+    if(a.colabId===id&&a.falta){
+      return{...a,colabNome:nome};
     }return a;
   });
   ss(K.apts,aptList);
