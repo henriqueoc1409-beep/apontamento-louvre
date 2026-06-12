@@ -646,6 +646,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   </div>
 </div>
 
+<!-- MODAL DUPLICAR MÊS -->
+<div class="modal-overlay" id="modal-dupmes">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">📋 Duplicar colaboradores de um mês para outro</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Copia o salário e a carga horária de todos os colaboradores do mês de origem para o mês de destino. Você pode ajustar os valores depois individualmente.</p>
+    <div class="fg fg2">
+      <div class="field"><label>Mês de origem</label><input id="dm-origem" type="month"/></div>
+      <div class="field"><label>Mês de destino</label><input id="dm-destino" type="month"/></div>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="dm-overwrite" style="width:auto"/>
+        Sobrescrever salários já existentes no mês de destino
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-dupmes')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmDupMes()">Duplicar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════
 // DATA — usa localStorage como "banco"
