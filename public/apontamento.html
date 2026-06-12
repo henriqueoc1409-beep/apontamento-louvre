@@ -957,13 +957,15 @@ function addColab(){
   const func=document.getElementById('c-func').value;
   const sal=parseFloat(document.getElementById('c-sal').value)||0;
   const h=parseFloat(document.getElementById('c-h').value)||220;
+  if(!sal||!h){alert('Informe salário e carga horária');return}
+  const mes=mfMes();
   const list=ls(K.colabs)||[];
-  list.push({id:Date.now(),nome,func,sal,h});
+  list.push({id:Date.now(),nome,func,sal,h,salHist:[{mes,sal,h}]});
   ss(K.colabs,list);
   ['c-nome','c-sal'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('c-func').value='';
   document.getElementById('c-h').value='220';
-  renderColabs();
+  renderColabs();renderMonthFolder();
 }
 
 function renderColabs(){
