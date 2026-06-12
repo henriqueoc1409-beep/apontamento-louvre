@@ -668,6 +668,52 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   </div>
 </div>
 
+<!-- MODAL INCLUIR COLAB NO MÊS -->
+<div class="modal-overlay" id="modal-addmes">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title">➕ Incluir colaborador neste mês</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Selecione um colaborador já cadastrado para incluí-lo no mês selecionado, com um salário específico.</p>
+    <div class="field"><label>Colaborador</label><select id="am2-colab"><option value="">— selecione —</option></select></div>
+    <div class="fg fg2">
+      <div class="field"><label>Salário do mês (R$)</label><input id="am2-sal" type="number" step="0.01" placeholder="0,00"/></div>
+      <div class="field"><label>Carga (h)</label><input id="am2-h" type="number" value="220"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-addmes')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmAddMes()">Incluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PACOTE -->
+<div class="modal-overlay" id="modal-pkg">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title">✏️ Editar pacote</div>
+    <input type="hidden" id="pk-id"/>
+    <div class="field"><label>Nome do pacote</label><input id="pk-nome"/></div>
+    <div class="field">
+      <label style="display:flex;justify-content:space-between;align-items:center">
+        <span>Locais</span>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="pkAddLocal()">+ Adicionar local</button>
+      </label>
+      <textarea id="pk-local" rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-family:var(--font);font-size:13px;resize:vertical" placeholder="Ex: TORRE, SUBSOLO 1"></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Separe múltiplos locais por vírgula.</div>
+    </div>
+    <div class="field">
+      <label style="display:flex;justify-content:space-between;align-items:center">
+        <span>Serviços</span>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="pkAddSvc()">+ Adicionar serviço</button>
+      </label>
+      <textarea id="pk-svcs" rows="4" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-family:var(--font);font-size:13px;resize:vertical" placeholder="Serviço 1, Serviço 2..."></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Separe múltiplos serviços por vírgula.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pkg')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePkg()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════
 // DATA — usa localStorage como "banco"
