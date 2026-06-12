@@ -324,6 +324,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     Colaboradores
   </div>
   <div id="colab-summary" style="margin-bottom:1rem;display:flex;gap:10px;flex-wrap:wrap"></div>
+
+  <!-- PASTA MENSAL DE COLABORADORES -->
+  <div class="card" style="margin-bottom:1.25rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:.75rem">
+      <div class="card-title" style="margin-bottom:0">📁 Pasta mensal de colaboradores</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <label style="font-size:12px;color:var(--text2);font-weight:500">Mês:</label>
+        <input id="mf-mes" type="month" onchange="renderMonthFolder()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font)"/>
+        <button class="btn btn-ghost btn-sm" onclick="openDupMes()" title="Duplicar colaboradores de outro mês">📋 Duplicar de outro mês</button>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Fixe o salário de cada colaborador neste mês. Os apontamentos do mês usam automaticamente esse valor. Duplique de outro mês para ganhar produtividade e ajuste só o que mudou.</p>
+    <div id="mf-list"></div>
+  </div>
+
   <div class="card" style="margin-bottom:1.25rem">
     <div class="card-title">Adicionar colaborador</div>
     <div class="fg fg2">
