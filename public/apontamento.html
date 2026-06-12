@@ -332,15 +332,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <label style="font-size:12px;color:var(--text2);font-weight:500">Mês:</label>
         <input id="mf-mes" type="month" onchange="renderMonthFolder()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font)"/>
+        <button class="btn btn-ghost btn-sm" onclick="openAddMes()" title="Incluir colaborador existente neste mês">➕ Incluir colaborador</button>
         <button class="btn btn-ghost btn-sm" onclick="openDupMes()" title="Duplicar colaboradores de outro mês">📋 Duplicar de outro mês</button>
       </div>
     </div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Fixe o salário de cada colaborador neste mês. Os apontamentos do mês usam automaticamente esse valor. Duplique de outro mês para ganhar produtividade e ajuste só o que mudou.</p>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Cada colaborador fica salvo somente no mês em que foi incluído. Use <b>Duplicar de outro mês</b> para trazer todos de uma vez ou <b>Incluir colaborador</b> para adicionar individualmente, ajustando o salário do mês.</p>
     <div id="mf-list"></div>
   </div>
 
   <div class="card" style="margin-bottom:1.25rem">
-    <div class="card-title">Adicionar colaborador</div>
+    <div class="card-title">Adicionar novo colaborador <span style="font-size:11px;font-weight:400;color:var(--text3)">(será fixado no mês selecionado acima)</span></div>
     <div class="fg fg2">
       <div class="field"><label>Nome completo</label><input id="c-nome" placeholder="Ex: João Silva"/></div>
       <div class="field"><label>Função</label>
