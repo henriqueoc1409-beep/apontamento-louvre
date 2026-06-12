@@ -1301,9 +1301,54 @@ function renderPkgs(){
         <td style="font-weight:600;white-space:nowrap">${p.nome}</td>
         <td style="font-size:12px;color:var(--text2)">${p.local||'—'}</td>
         <td style="font-size:12px">${(p.servicos||[]).slice(0,3).join(' · ')}${(p.servicos||[]).length>3?` <span style="color:var(--text3)">+${(p.servicos||[]).length-3} mais</span>`:''}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="delPkg(${p.id})">Excluir</button></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-ghost btn-sm" onclick="openEditPkg(${p.id})">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="delPkg(${p.id})">Excluir</button>
+        </td>
       </tr>`).join('')}</tbody>
     </table></div>`;
+}
+
+function openEditPkg(id){
+  const p=(ls(K.pkgs)||[]).find(p=>p.id===id);
+  if(!p)return;
+  document.getElementById('pk-id').value=id;
+  document.getElementById('pk-nome').value=p.nome||'';
+  document.getElementById('pk-local').value=p.local||'';
+  document.getElementById('pk-svcs').value=(p.servicos||[]).join(', ');
+  document.getElementById('modal-pkg').classList.add('open');
+}
+function pkAddLocal(){
+  const novo=(prompt('Novo local a adicionar:')||'').trim();
+  if(!novo)return;
+  const ta=document.getElementById('pk-local');
+  const atual=ta.value.trim();
+  const arr=atual?atual.split(',').map(s=>s.trim()).filter(Boolean):[];
+  if(arr.some(l=>l.toLowerCase()===novo.toLowerCase())){alert('Esse local já está na lista.');return}
+  arr.push(novo);
+  ta.value=arr.join(', ');
+}
+function pkAddSvc(){
+  const novo=(prompt('Novo serviço a adicionar:')||'').trim();
+  if(!novo)return;
+  const ta=document.getElementById('pk-svcs');
+  const atual=ta.value.trim();
+  const arr=atual?atual.split(',').map(s=>s.trim()).filter(Boolean):[];
+  arr.push(novo);
+  ta.value=arr.join(', ');
+}
+function savePkg(){
+  const id=+document.getElementById('pk-id').value;
+  const nome=document.getElementById('pk-nome').value.trim();
+  if(!nome){alert('Informe o nome do pacote');return}
+  const local=document.getElementById('pk-local').value.trim();
+  const svcs=document.getElementById('pk-svcs').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const list=ls(K.pkgs)||[];
+  const idx=list.findIndex(p=>p.id===id);if(idx<0)return;
+  list[idx]={...list[idx],nome,local,servicos:svcs};
+  ss(K.pkgs,list);
+  closeModal('modal-pkg');
+  renderPkgs();
 }
 
 // ══════════════════════════════════
