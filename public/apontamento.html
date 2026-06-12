@@ -324,6 +324,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     Colaboradores
   </div>
   <div id="colab-summary" style="margin-bottom:1rem;display:flex;gap:10px;flex-wrap:wrap"></div>
+
+  <!-- PASTA MENSAL DE COLABORADORES -->
+  <div class="card" style="margin-bottom:1.25rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:.75rem">
+      <div class="card-title" style="margin-bottom:0">📁 Pasta mensal de colaboradores</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <label style="font-size:12px;color:var(--text2);font-weight:500">Mês:</label>
+        <input id="mf-mes" type="month" onchange="renderMonthFolder()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font)"/>
+        <button class="btn btn-ghost btn-sm" onclick="openDupMes()" title="Duplicar colaboradores de outro mês">📋 Duplicar de outro mês</button>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Fixe o salário de cada colaborador neste mês. Os apontamentos do mês usam automaticamente esse valor. Duplique de outro mês para ganhar produtividade e ajuste só o que mudou.</p>
+    <div id="mf-list"></div>
+  </div>
+
   <div class="card" style="margin-bottom:1.25rem">
     <div class="card-title">Adicionar colaborador</div>
     <div class="fg fg2">
@@ -631,6 +646,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   </div>
 </div>
 
+<!-- MODAL DUPLICAR MÊS -->
+<div class="modal-overlay" id="modal-dupmes">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">📋 Duplicar colaboradores de um mês para outro</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Copia o salário e a carga horária de todos os colaboradores do mês de origem para o mês de destino. Você pode ajustar os valores depois individualmente.</p>
+    <div class="fg fg2">
+      <div class="field"><label>Mês de origem</label><input id="dm-origem" type="month"/></div>
+      <div class="field"><label>Mês de destino</label><input id="dm-destino" type="month"/></div>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="dm-overwrite" style="width:auto"/>
+        Sobrescrever salários já existentes no mês de destino
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-dupmes')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmDupMes()">Duplicar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════
 // DATA — usa localStorage como "banco"
@@ -815,7 +852,7 @@ function goPage(name){
   document.getElementById('nav-'+name).classList.add('active');
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  if(name==='colaboradores'){populateFuncSelects();renderColabs()}
+  if(name==='colaboradores'){populateFuncSelects();renderColabs();renderMonthFolder()}
   if(name==='pacotes'){renderPkgs()}
   if(name==='apontamento'){populateAptSelects();renderAptFolders();renderStatusHoje()}
   if(name==='relatorio'){populateRelFilters();renderRel()}
@@ -1025,6 +1062,119 @@ function recalcAptsForColab(id){
     return{...a,custoH:cH,custo:cH*a.horas};
   });
   ss(K.apts,aptList);
+}
+
+// ── PASTA MENSAL DE COLABORADORES ──
+function mfMes(){
+  const el=document.getElementById('mf-mes');
+  if(!el.value) el.value=(new Date()).toISOString().slice(0,7);
+  return el.value;
+}
+function salForMonth(c,mes){
+  // retorna {sal,h,fonte}  fonte: 'mes' (exato), 'anterior', 'base'
+  const hist=(c.salHist||[]).slice().sort((a,b)=>b.mes.localeCompare(a.mes));
+  const exato=hist.find(s=>s.mes===mes);
+  if(exato) return {sal:+exato.sal,h:+exato.h,fonte:'mes'};
+  const anterior=hist.find(s=>s.mes<mes);
+  if(anterior) return {sal:+anterior.sal,h:+anterior.h,fonte:'anterior'};
+  return {sal:+c.sal||0,h:+c.h||220,fonte:'base'};
+}
+function renderMonthFolder(){
+  const mes=mfMes();
+  const list=colabs();
+  const el=document.getElementById('mf-list');
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Nenhum colaborador cadastrado ainda.</div>';return}
+  const [y,mo]=mes.split('-');
+  const nm=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][+mo-1];
+  const fixos=list.filter(c=>salForMonth(c,mes).fonte==='mes').length;
+  el.innerHTML=`
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.6rem">
+      <span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span>
+      <span class="badge b-teal" style="font-size:12px;padding:4px 10px">${fixos}/${list.length} com salário fixado</span>
+    </div>
+    <div style="overflow:auto"><table class="tbl">
+      <thead><tr><th>Colaborador</th><th>Função</th><th>Salário do mês (R$)</th><th>Carga (h)</th><th>Custo/h</th><th>Status</th><th></th></tr></thead>
+      <tbody>${list.map(c=>{
+        const v=salForMonth(c,mes);
+        const tag=v.fonte==='mes'?'<span class="badge b-teal" style="font-size:10px">Fixado</span>'
+                 :v.fonte==='anterior'?'<span class="badge b-amber" style="font-size:10px">Herdado</span>'
+                 :'<span class="badge b-blue" style="font-size:10px">Base</span>';
+        return `<tr>
+          <td style="font-weight:600">${c.nome}</td>
+          <td><span class="badge b-teal">${c.func||'—'}</span></td>
+          <td><input id="mf-sal-${c.id}" type="number" step="0.01" value="${v.sal}" style="width:120px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
+          <td><input id="mf-h-${c.id}" type="number" value="${v.h}" style="width:80px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
+          <td><span class="badge b-blue">${BRL(v.sal/(v.h||1))}/h</span></td>
+          <td>${tag}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-primary btn-sm" onclick="saveMonthSal(${c.id})">Salvar</button>
+            ${v.fonte==='mes'?`<button class="btn btn-danger btn-sm" onclick="delMonthSal(${c.id})" title="Remover deste mês">✕</button>`:''}
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+function saveMonthSal(id){
+  const mes=mfMes();
+  const sal=parseFloat(document.getElementById('mf-sal-'+id).value)||0;
+  const h=parseFloat(document.getElementById('mf-h-'+id).value)||220;
+  if(!sal||!h){alert('Informe salário e carga.');return}
+  const list=ls(K.colabs)||[];
+  const idx=list.findIndex(c=>c.id===id);if(idx<0)return;
+  const hist=(list[idx].salHist||[]).filter(s=>s.mes!==mes);
+  hist.push({mes,sal,h});
+  list[idx]={...list[idx],salHist:hist};
+  ss(K.colabs,list);
+  recalcAptsForColab(id);
+  renderMonthFolder();renderColabs();
+}
+function delMonthSal(id){
+  if(!confirm('Remover o salário fixado deste mês?'))return;
+  const mes=mfMes();
+  const list=ls(K.colabs)||[];
+  const idx=list.findIndex(c=>c.id===id);if(idx<0)return;
+  list[idx]={...list[idx],salHist:(list[idx].salHist||[]).filter(s=>s.mes!==mes)};
+  ss(K.colabs,list);
+  recalcAptsForColab(id);
+  renderMonthFolder();renderColabs();
+}
+function openDupMes(){
+  const destino=mfMes();
+  // origem padrão: mês anterior
+  const [y,mo]=destino.split('-').map(Number);
+  const d=new Date(y,mo-2,1);
+  const origem=d.toISOString().slice(0,7);
+  document.getElementById('dm-origem').value=origem;
+  document.getElementById('dm-destino').value=destino;
+  document.getElementById('dm-overwrite').checked=false;
+  document.getElementById('modal-dupmes').classList.add('open');
+}
+function confirmDupMes(){
+  const origem=document.getElementById('dm-origem').value;
+  const destino=document.getElementById('dm-destino').value;
+  const overwrite=document.getElementById('dm-overwrite').checked;
+  if(!origem||!destino){alert('Selecione os dois meses.');return}
+  if(origem===destino){alert('Origem e destino devem ser diferentes.');return}
+  const list=ls(K.colabs)||[];
+  let copiados=0,pulados=0;
+  list.forEach((c,i)=>{
+    const v=salForMonth(c,origem);
+    if(!v.sal||!v.h) return;
+    const hist=(c.salHist||[]).slice();
+    const jaTem=hist.find(s=>s.mes===destino);
+    if(jaTem&&!overwrite){pulados++;return}
+    const novo=hist.filter(s=>s.mes!==destino);
+    novo.push({mes:destino,sal:v.sal,h:v.h});
+    list[i]={...c,salHist:novo};
+    copiados++;
+  });
+  ss(K.colabs,list);
+  // recalcular apontamentos do mês de destino para todos os colabs afetados
+  list.forEach(c=>recalcAptsForColab(c.id));
+  closeModal('modal-dupmes');
+  document.getElementById('mf-mes').value=destino;
+  renderMonthFolder();renderColabs();
+  alert(`✓ Duplicação concluída.\n${copiados} colaborador(es) copiados.\n${pulados} pulados (já tinham salário no mês).`);
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('open')}
