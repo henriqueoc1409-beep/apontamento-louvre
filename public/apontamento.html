@@ -1064,6 +1064,119 @@ function recalcAptsForColab(id){
   ss(K.apts,aptList);
 }
 
+// ── PASTA MENSAL DE COLABORADORES ──
+function mfMes(){
+  const el=document.getElementById('mf-mes');
+  if(!el.value) el.value=(new Date()).toISOString().slice(0,7);
+  return el.value;
+}
+function salForMonth(c,mes){
+  // retorna {sal,h,fonte}  fonte: 'mes' (exato), 'anterior', 'base'
+  const hist=(c.salHist||[]).slice().sort((a,b)=>b.mes.localeCompare(a.mes));
+  const exato=hist.find(s=>s.mes===mes);
+  if(exato) return {sal:+exato.sal,h:+exato.h,fonte:'mes'};
+  const anterior=hist.find(s=>s.mes<mes);
+  if(anterior) return {sal:+anterior.sal,h:+anterior.h,fonte:'anterior'};
+  return {sal:+c.sal||0,h:+c.h||220,fonte:'base'};
+}
+function renderMonthFolder(){
+  const mes=mfMes();
+  const list=colabs();
+  const el=document.getElementById('mf-list');
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Nenhum colaborador cadastrado ainda.</div>';return}
+  const [y,mo]=mes.split('-');
+  const nm=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][+mo-1];
+  const fixos=list.filter(c=>salForMonth(c,mes).fonte==='mes').length;
+  el.innerHTML=`
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.6rem">
+      <span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span>
+      <span class="badge b-teal" style="font-size:12px;padding:4px 10px">${fixos}/${list.length} com salário fixado</span>
+    </div>
+    <div style="overflow:auto"><table class="tbl">
+      <thead><tr><th>Colaborador</th><th>Função</th><th>Salário do mês (R$)</th><th>Carga (h)</th><th>Custo/h</th><th>Status</th><th></th></tr></thead>
+      <tbody>${list.map(c=>{
+        const v=salForMonth(c,mes);
+        const tag=v.fonte==='mes'?'<span class="badge b-teal" style="font-size:10px">Fixado</span>'
+                 :v.fonte==='anterior'?'<span class="badge b-amber" style="font-size:10px">Herdado</span>'
+                 :'<span class="badge b-blue" style="font-size:10px">Base</span>';
+        return `<tr>
+          <td style="font-weight:600">${c.nome}</td>
+          <td><span class="badge b-teal">${c.func||'—'}</span></td>
+          <td><input id="mf-sal-${c.id}" type="number" step="0.01" value="${v.sal}" style="width:120px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
+          <td><input id="mf-h-${c.id}" type="number" value="${v.h}" style="width:80px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
+          <td><span class="badge b-blue">${BRL(v.sal/(v.h||1))}/h</span></td>
+          <td>${tag}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-primary btn-sm" onclick="saveMonthSal(${c.id})">Salvar</button>
+            ${v.fonte==='mes'?`<button class="btn btn-danger btn-sm" onclick="delMonthSal(${c.id})" title="Remover deste mês">✕</button>`:''}
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+function saveMonthSal(id){
+  const mes=mfMes();
+  const sal=parseFloat(document.getElementById('mf-sal-'+id).value)||0;
+  const h=parseFloat(document.getElementById('mf-h-'+id).value)||220;
+  if(!sal||!h){alert('Informe salário e carga.');return}
+  const list=ls(K.colabs)||[];
+  const idx=list.findIndex(c=>c.id===id);if(idx<0)return;
+  const hist=(list[idx].salHist||[]).filter(s=>s.mes!==mes);
+  hist.push({mes,sal,h});
+  list[idx]={...list[idx],salHist:hist};
+  ss(K.colabs,list);
+  recalcAptsForColab(id);
+  renderMonthFolder();renderColabs();
+}
+function delMonthSal(id){
+  if(!confirm('Remover o salário fixado deste mês?'))return;
+  const mes=mfMes();
+  const list=ls(K.colabs)||[];
+  const idx=list.findIndex(c=>c.id===id);if(idx<0)return;
+  list[idx]={...list[idx],salHist:(list[idx].salHist||[]).filter(s=>s.mes!==mes)};
+  ss(K.colabs,list);
+  recalcAptsForColab(id);
+  renderMonthFolder();renderColabs();
+}
+function openDupMes(){
+  const destino=mfMes();
+  // origem padrão: mês anterior
+  const [y,mo]=destino.split('-').map(Number);
+  const d=new Date(y,mo-2,1);
+  const origem=d.toISOString().slice(0,7);
+  document.getElementById('dm-origem').value=origem;
+  document.getElementById('dm-destino').value=destino;
+  document.getElementById('dm-overwrite').checked=false;
+  document.getElementById('modal-dupmes').classList.add('open');
+}
+function confirmDupMes(){
+  const origem=document.getElementById('dm-origem').value;
+  const destino=document.getElementById('dm-destino').value;
+  const overwrite=document.getElementById('dm-overwrite').checked;
+  if(!origem||!destino){alert('Selecione os dois meses.');return}
+  if(origem===destino){alert('Origem e destino devem ser diferentes.');return}
+  const list=ls(K.colabs)||[];
+  let copiados=0,pulados=0;
+  list.forEach((c,i)=>{
+    const v=salForMonth(c,origem);
+    if(!v.sal||!v.h) return;
+    const hist=(c.salHist||[]).slice();
+    const jaTem=hist.find(s=>s.mes===destino);
+    if(jaTem&&!overwrite){pulados++;return}
+    const novo=hist.filter(s=>s.mes!==destino);
+    novo.push({mes:destino,sal:v.sal,h:v.h});
+    list[i]={...c,salHist:novo};
+    copiados++;
+  });
+  ss(K.colabs,list);
+  // recalcular apontamentos do mês de destino para todos os colabs afetados
+  list.forEach(c=>recalcAptsForColab(c.id));
+  closeModal('modal-dupmes');
+  document.getElementById('mf-mes').value=destino;
+  renderMonthFolder();renderColabs();
+  alert(`✓ Duplicação concluída.\n${copiados} colaborador(es) copiados.\n${pulados} pulados (já tinham salário no mês).`);
+}
+
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 
 // ══════════════════════════════════
