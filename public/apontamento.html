@@ -1225,6 +1225,43 @@ function confirmDupMes(){
   alert(`✓ Duplicação concluída.\n${copiados} colaborador(es) copiados.\n${pulados} pulados (já tinham salário no mês).`);
 }
 
+// ── Incluir colaborador existente neste mês ──
+function openAddMes(){
+  const mes=mfMes();
+  const all=colabs();
+  const disponiveis=all.filter(c=>!(c.salHist||[]).some(s=>s.mes===mes));
+  const sel=document.getElementById('am2-colab');
+  sel.innerHTML='<option value="">— selecione —</option>'+disponiveis.map(c=>{
+    const v=salForMonth(c,mes);
+    return `<option value="${c.id}" data-sal="${v.sal}" data-h="${v.h}">${c.nome}${c.func?' ('+c.func+')':''}</option>`;
+  }).join('');
+  if(!disponiveis.length){alert('Todos os colaboradores cadastrados já estão neste mês.');return}
+  document.getElementById('am2-sal').value='';
+  document.getElementById('am2-h').value=220;
+  sel.onchange=function(){
+    const o=sel.options[sel.selectedIndex];
+    if(o&&o.dataset.sal){document.getElementById('am2-sal').value=o.dataset.sal;document.getElementById('am2-h').value=o.dataset.h}
+  };
+  document.getElementById('modal-addmes').classList.add('open');
+}
+function confirmAddMes(){
+  const id=+document.getElementById('am2-colab').value;
+  const sal=parseFloat(document.getElementById('am2-sal').value)||0;
+  const h=parseFloat(document.getElementById('am2-h').value)||220;
+  if(!id){alert('Selecione um colaborador.');return}
+  if(!sal||!h){alert('Informe salário e carga horária.');return}
+  const mes=mfMes();
+  const list=ls(K.colabs)||[];
+  const idx=list.findIndex(c=>c.id===id);if(idx<0)return;
+  const hist=(list[idx].salHist||[]).filter(s=>s.mes!==mes);
+  hist.push({mes,sal,h});
+  list[idx]={...list[idx],salHist:hist};
+  ss(K.colabs,list);
+  recalcAptsForColab(id);
+  closeModal('modal-addmes');
+  renderMonthFolder();renderColabs();
+}
+
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 
 // ══════════════════════════════════
