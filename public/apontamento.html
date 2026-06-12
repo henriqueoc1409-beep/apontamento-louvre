@@ -1130,34 +1130,33 @@ function salForMonth(c,mes){
 }
 function renderMonthFolder(){
   const mes=mfMes();
-  const list=colabs();
+  const all=colabs();
+  const list=all.filter(c=>(c.salHist||[]).some(s=>s.mes===mes));
   const el=document.getElementById('mf-list');
-  if(!list.length){el.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Nenhum colaborador cadastrado ainda.</div>';return}
   const [y,mo]=mes.split('-');
   const nm=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][+mo-1];
-  const fixos=list.filter(c=>salForMonth(c,mes).fonte==='mes').length;
+  if(!list.length){
+    const hint=all.length?'Use <b>Duplicar de outro mês</b> ou <b>Incluir colaborador</b> para adicioná-los a este mês.':'Cadastre um colaborador no formulário abaixo.';
+    el.innerHTML=`<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px"><div style="margin-bottom:6px"><span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span></div>Nenhum colaborador neste mês.<br/>${hint}</div>`;return;
+  }
   el.innerHTML=`
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.6rem">
       <span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span>
-      <span class="badge b-teal" style="font-size:12px;padding:4px 10px">${fixos}/${list.length} com salário fixado</span>
+      <span class="badge b-teal" style="font-size:12px;padding:4px 10px">${list.length} colaborador(es) neste mês</span>
     </div>
     <div style="overflow:auto"><table class="tbl">
-      <thead><tr><th>Colaborador</th><th>Função</th><th>Salário do mês (R$)</th><th>Carga (h)</th><th>Custo/h</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>Colaborador</th><th>Função</th><th>Salário do mês (R$)</th><th>Carga (h)</th><th>Custo/h</th><th></th></tr></thead>
       <tbody>${list.map(c=>{
         const v=salForMonth(c,mes);
-        const tag=v.fonte==='mes'?'<span class="badge b-teal" style="font-size:10px">Fixado</span>'
-                 :v.fonte==='anterior'?'<span class="badge b-amber" style="font-size:10px">Herdado</span>'
-                 :'<span class="badge b-blue" style="font-size:10px">Base</span>';
         return `<tr>
           <td style="font-weight:600">${c.nome}</td>
           <td><span class="badge b-teal">${c.func||'—'}</span></td>
           <td><input id="mf-sal-${c.id}" type="number" step="0.01" value="${v.sal}" style="width:120px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
           <td><input id="mf-h-${c.id}" type="number" value="${v.h}" style="width:80px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
           <td><span class="badge b-blue">${BRL(v.sal/(v.h||1))}/h</span></td>
-          <td>${tag}</td>
           <td style="white-space:nowrap">
             <button class="btn btn-primary btn-sm" onclick="saveMonthSal(${c.id})">Salvar</button>
-            ${v.fonte==='mes'?`<button class="btn btn-danger btn-sm" onclick="delMonthSal(${c.id})" title="Remover deste mês">✕</button>`:''}
+            <button class="btn btn-danger btn-sm" onclick="delMonthSal(${c.id})" title="Remover deste mês">✕</button>
           </td>
         </tr>`;
       }).join('')}</tbody>
