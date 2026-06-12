@@ -332,15 +332,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <label style="font-size:12px;color:var(--text2);font-weight:500">Mês:</label>
         <input id="mf-mes" type="month" onchange="renderMonthFolder()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font)"/>
+        <button class="btn btn-ghost btn-sm" onclick="openAddMes()" title="Incluir colaborador existente neste mês">➕ Incluir colaborador</button>
         <button class="btn btn-ghost btn-sm" onclick="openDupMes()" title="Duplicar colaboradores de outro mês">📋 Duplicar de outro mês</button>
       </div>
     </div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Fixe o salário de cada colaborador neste mês. Os apontamentos do mês usam automaticamente esse valor. Duplique de outro mês para ganhar produtividade e ajuste só o que mudou.</p>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Cada colaborador fica salvo somente no mês em que foi incluído. Use <b>Duplicar de outro mês</b> para trazer todos de uma vez ou <b>Incluir colaborador</b> para adicionar individualmente, ajustando o salário do mês.</p>
     <div id="mf-list"></div>
   </div>
 
   <div class="card" style="margin-bottom:1.25rem">
-    <div class="card-title">Adicionar colaborador</div>
+    <div class="card-title">Adicionar novo colaborador <span style="font-size:11px;font-weight:400;color:var(--text3)">(será fixado no mês selecionado acima)</span></div>
     <div class="fg fg2">
       <div class="field"><label>Nome completo</label><input id="c-nome" placeholder="Ex: João Silva"/></div>
       <div class="field"><label>Função</label>
@@ -668,6 +669,52 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   </div>
 </div>
 
+<!-- MODAL INCLUIR COLAB NO MÊS -->
+<div class="modal-overlay" id="modal-addmes">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title">➕ Incluir colaborador neste mês</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Selecione um colaborador já cadastrado para incluí-lo no mês selecionado, com um salário específico.</p>
+    <div class="field"><label>Colaborador</label><select id="am2-colab"><option value="">— selecione —</option></select></div>
+    <div class="fg fg2">
+      <div class="field"><label>Salário do mês (R$)</label><input id="am2-sal" type="number" step="0.01" placeholder="0,00"/></div>
+      <div class="field"><label>Carga (h)</label><input id="am2-h" type="number" value="220"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-addmes')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmAddMes()">Incluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PACOTE -->
+<div class="modal-overlay" id="modal-pkg">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title">✏️ Editar pacote</div>
+    <input type="hidden" id="pk-id"/>
+    <div class="field"><label>Nome do pacote</label><input id="pk-nome"/></div>
+    <div class="field">
+      <label style="display:flex;justify-content:space-between;align-items:center">
+        <span>Locais</span>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="pkAddLocal()">+ Adicionar local</button>
+      </label>
+      <textarea id="pk-local" rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-family:var(--font);font-size:13px;resize:vertical" placeholder="Ex: TORRE, SUBSOLO 1"></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Separe múltiplos locais por vírgula.</div>
+    </div>
+    <div class="field">
+      <label style="display:flex;justify-content:space-between;align-items:center">
+        <span>Serviços</span>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="pkAddSvc()">+ Adicionar serviço</button>
+      </label>
+      <textarea id="pk-svcs" rows="4" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-family:var(--font);font-size:13px;resize:vertical" placeholder="Serviço 1, Serviço 2..."></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Separe múltiplos serviços por vírgula.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pkg')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePkg()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════
 // DATA — usa localStorage como "banco"
@@ -910,13 +957,15 @@ function addColab(){
   const func=document.getElementById('c-func').value;
   const sal=parseFloat(document.getElementById('c-sal').value)||0;
   const h=parseFloat(document.getElementById('c-h').value)||220;
+  if(!sal||!h){alert('Informe salário e carga horária');return}
+  const mes=mfMes();
   const list=ls(K.colabs)||[];
-  list.push({id:Date.now(),nome,func,sal,h});
+  list.push({id:Date.now(),nome,func,sal,h,salHist:[{mes,sal,h}]});
   ss(K.colabs,list);
   ['c-nome','c-sal'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('c-func').value='';
   document.getElementById('c-h').value='220';
-  renderColabs();
+  renderColabs();renderMonthFolder();
 }
 
 function renderColabs(){
@@ -1081,34 +1130,33 @@ function salForMonth(c,mes){
 }
 function renderMonthFolder(){
   const mes=mfMes();
-  const list=colabs();
+  const all=colabs();
+  const list=all.filter(c=>(c.salHist||[]).some(s=>s.mes===mes));
   const el=document.getElementById('mf-list');
-  if(!list.length){el.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Nenhum colaborador cadastrado ainda.</div>';return}
   const [y,mo]=mes.split('-');
   const nm=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][+mo-1];
-  const fixos=list.filter(c=>salForMonth(c,mes).fonte==='mes').length;
+  if(!list.length){
+    const hint=all.length?'Use <b>Duplicar de outro mês</b> ou <b>Incluir colaborador</b> para adicioná-los a este mês.':'Cadastre um colaborador no formulário abaixo.';
+    el.innerHTML=`<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px"><div style="margin-bottom:6px"><span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span></div>Nenhum colaborador neste mês.<br/>${hint}</div>`;return;
+  }
   el.innerHTML=`
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.6rem">
       <span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span>
-      <span class="badge b-teal" style="font-size:12px;padding:4px 10px">${fixos}/${list.length} com salário fixado</span>
+      <span class="badge b-teal" style="font-size:12px;padding:4px 10px">${list.length} colaborador(es) neste mês</span>
     </div>
     <div style="overflow:auto"><table class="tbl">
-      <thead><tr><th>Colaborador</th><th>Função</th><th>Salário do mês (R$)</th><th>Carga (h)</th><th>Custo/h</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>Colaborador</th><th>Função</th><th>Salário do mês (R$)</th><th>Carga (h)</th><th>Custo/h</th><th></th></tr></thead>
       <tbody>${list.map(c=>{
         const v=salForMonth(c,mes);
-        const tag=v.fonte==='mes'?'<span class="badge b-teal" style="font-size:10px">Fixado</span>'
-                 :v.fonte==='anterior'?'<span class="badge b-amber" style="font-size:10px">Herdado</span>'
-                 :'<span class="badge b-blue" style="font-size:10px">Base</span>';
         return `<tr>
           <td style="font-weight:600">${c.nome}</td>
           <td><span class="badge b-teal">${c.func||'—'}</span></td>
           <td><input id="mf-sal-${c.id}" type="number" step="0.01" value="${v.sal}" style="width:120px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
           <td><input id="mf-h-${c.id}" type="number" value="${v.h}" style="width:80px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
           <td><span class="badge b-blue">${BRL(v.sal/(v.h||1))}/h</span></td>
-          <td>${tag}</td>
           <td style="white-space:nowrap">
             <button class="btn btn-primary btn-sm" onclick="saveMonthSal(${c.id})">Salvar</button>
-            ${v.fonte==='mes'?`<button class="btn btn-danger btn-sm" onclick="delMonthSal(${c.id})" title="Remover deste mês">✕</button>`:''}
+            <button class="btn btn-danger btn-sm" onclick="delMonthSal(${c.id})" title="Remover deste mês">✕</button>
           </td>
         </tr>`;
       }).join('')}</tbody>
@@ -1177,6 +1225,43 @@ function confirmDupMes(){
   alert(`✓ Duplicação concluída.\n${copiados} colaborador(es) copiados.\n${pulados} pulados (já tinham salário no mês).`);
 }
 
+// ── Incluir colaborador existente neste mês ──
+function openAddMes(){
+  const mes=mfMes();
+  const all=colabs();
+  const disponiveis=all.filter(c=>!(c.salHist||[]).some(s=>s.mes===mes));
+  const sel=document.getElementById('am2-colab');
+  sel.innerHTML='<option value="">— selecione —</option>'+disponiveis.map(c=>{
+    const v=salForMonth(c,mes);
+    return `<option value="${c.id}" data-sal="${v.sal}" data-h="${v.h}">${c.nome}${c.func?' ('+c.func+')':''}</option>`;
+  }).join('');
+  if(!disponiveis.length){alert('Todos os colaboradores cadastrados já estão neste mês.');return}
+  document.getElementById('am2-sal').value='';
+  document.getElementById('am2-h').value=220;
+  sel.onchange=function(){
+    const o=sel.options[sel.selectedIndex];
+    if(o&&o.dataset.sal){document.getElementById('am2-sal').value=o.dataset.sal;document.getElementById('am2-h').value=o.dataset.h}
+  };
+  document.getElementById('modal-addmes').classList.add('open');
+}
+function confirmAddMes(){
+  const id=+document.getElementById('am2-colab').value;
+  const sal=parseFloat(document.getElementById('am2-sal').value)||0;
+  const h=parseFloat(document.getElementById('am2-h').value)||220;
+  if(!id){alert('Selecione um colaborador.');return}
+  if(!sal||!h){alert('Informe salário e carga horária.');return}
+  const mes=mfMes();
+  const list=ls(K.colabs)||[];
+  const idx=list.findIndex(c=>c.id===id);if(idx<0)return;
+  const hist=(list[idx].salHist||[]).filter(s=>s.mes!==mes);
+  hist.push({mes,sal,h});
+  list[idx]={...list[idx],salHist:hist};
+  ss(K.colabs,list);
+  recalcAptsForColab(id);
+  closeModal('modal-addmes');
+  renderMonthFolder();renderColabs();
+}
+
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 
 // ══════════════════════════════════
@@ -1216,9 +1301,54 @@ function renderPkgs(){
         <td style="font-weight:600;white-space:nowrap">${p.nome}</td>
         <td style="font-size:12px;color:var(--text2)">${p.local||'—'}</td>
         <td style="font-size:12px">${(p.servicos||[]).slice(0,3).join(' · ')}${(p.servicos||[]).length>3?` <span style="color:var(--text3)">+${(p.servicos||[]).length-3} mais</span>`:''}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="delPkg(${p.id})">Excluir</button></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-ghost btn-sm" onclick="openEditPkg(${p.id})">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="delPkg(${p.id})">Excluir</button>
+        </td>
       </tr>`).join('')}</tbody>
     </table></div>`;
+}
+
+function openEditPkg(id){
+  const p=(ls(K.pkgs)||[]).find(p=>p.id===id);
+  if(!p)return;
+  document.getElementById('pk-id').value=id;
+  document.getElementById('pk-nome').value=p.nome||'';
+  document.getElementById('pk-local').value=p.local||'';
+  document.getElementById('pk-svcs').value=(p.servicos||[]).join(', ');
+  document.getElementById('modal-pkg').classList.add('open');
+}
+function pkAddLocal(){
+  const novo=(prompt('Novo local a adicionar:')||'').trim();
+  if(!novo)return;
+  const ta=document.getElementById('pk-local');
+  const atual=ta.value.trim();
+  const arr=atual?atual.split(',').map(s=>s.trim()).filter(Boolean):[];
+  if(arr.some(l=>l.toLowerCase()===novo.toLowerCase())){alert('Esse local já está na lista.');return}
+  arr.push(novo);
+  ta.value=arr.join(', ');
+}
+function pkAddSvc(){
+  const novo=(prompt('Novo serviço a adicionar:')||'').trim();
+  if(!novo)return;
+  const ta=document.getElementById('pk-svcs');
+  const atual=ta.value.trim();
+  const arr=atual?atual.split(',').map(s=>s.trim()).filter(Boolean):[];
+  arr.push(novo);
+  ta.value=arr.join(', ');
+}
+function savePkg(){
+  const id=+document.getElementById('pk-id').value;
+  const nome=document.getElementById('pk-nome').value.trim();
+  if(!nome){alert('Informe o nome do pacote');return}
+  const local=document.getElementById('pk-local').value.trim();
+  const svcs=document.getElementById('pk-svcs').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const list=ls(K.pkgs)||[];
+  const idx=list.findIndex(p=>p.id===id);if(idx<0)return;
+  list[idx]={...list[idx],nome,local,servicos:svcs};
+  ss(K.pkgs,list);
+  closeModal('modal-pkg');
+  renderPkgs();
 }
 
 // ══════════════════════════════════
