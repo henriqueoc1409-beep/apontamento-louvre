@@ -373,7 +373,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     <div class="card-title">Adicionar pacote</div>
     <div class="fg fg2">
       <div class="field"><label>Nome do pacote</label><input id="p-nome" placeholder="Nome do novo pacote"/></div>
-      <div class="field"><label>Locais</label><input id="p-local" placeholder="Ex: TORRE, SUBSOLO 1"/></div>
+      <div class="field"><label>Locais</label><div id="p-locais-wrap" style="display:flex;gap:6px;flex-wrap:wrap;max-height:160px;overflow-y:auto;padding:6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px"></div></div>
     </div>
     <div class="fg fg1">
       <div class="field"><label>Serviços (separe por vírgula)</label><input id="p-svcs" placeholder="Serviço 1, Serviço 2, Serviço 3..."/></div>
@@ -383,16 +383,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       Adicionar pacote
     </button>
   </div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-title">Locais de obra</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input id="loc-novo" placeholder="Nome do novo local" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:var(--font);font-size:14px"/>
+      <button class="btn btn-primary" onclick="addLoc()">+ Adicionar local</button>
+    </div>
+    <div id="loc-list" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
   <div class="filter-bar">
     <div class="field"><label>Buscar</label><input id="pkg-search" placeholder="🔍 Nome ou serviço..." oninput="renderPkgs()" style="min-width:200px"/></div>
     <div class="field"><label>Local</label>
       <select id="pkg-loc-filter" onchange="renderPkgs()" style="min-width:150px">
         <option value="">Todos os locais</option>
-        <option>FUNDAÇÃO</option><option>SUBSOLO 2</option><option>SUBSOLO 1</option>
-        <option>TERREO</option><option>G1</option><option>G2</option>
-        <option>3º LAZER</option><option>3º TIPO</option><option>4º TIPO</option>
-        <option>TORRE (4º A 27º)</option><option>ROOFTOP</option><option>ÁTICO</option>
-        <option>SST</option><option>TESTES</option><option>FACHADA</option><option>HALL</option>
       </select>
     </div>
   </div>
@@ -693,12 +696,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     <input type="hidden" id="pk-id"/>
     <div class="field"><label>Nome do pacote</label><input id="pk-nome"/></div>
     <div class="field">
-      <label style="display:flex;justify-content:space-between;align-items:center">
-        <span>Locais</span>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="pkAddLocal()">+ Adicionar local</button>
-      </label>
-      <textarea id="pk-local" rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-family:var(--font);font-size:13px;resize:vertical" placeholder="Ex: TORRE, SUBSOLO 1"></textarea>
-      <div style="font-size:11px;color:var(--text3);margin-top:4px">Separe múltiplos locais por vírgula.</div>
+      <label>Locais</label>
+      <div id="pk-locais-wrap" style="display:flex;gap:6px;flex-wrap:wrap;max-height:160px;overflow-y:auto;padding:6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px"></div>
     </div>
     <div class="field">
       <label style="display:flex;justify-content:space-between;align-items:center">
@@ -721,7 +720,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 // ══════════════════════════════════
 const K={
   users:'lv_users', sessions:'lv_session',
-  colabs:'lv_colabs', pkgs:'lv_pkgs', apts:'lv_apts', pending:'lv_pending', funcs:'lv_funcs'
+  colabs:'lv_colabs', pkgs:'lv_pkgs', apts:'lv_apts', pending:'lv_pending', funcs:'lv_funcs', locs:'lv_locs'
 };
 const ADMIN_EMAIL='henrique@tresincorporadora.com.br';
 
@@ -732,7 +731,10 @@ function ss(k,v){localStorage.setItem(k,JSON.stringify(v))}
 const EAP_SEED=[{"nome":"Acunhamento","servicos":["Preenchimento superior da alvenaria com argamassa expansiva","Corte de excesso de bloco","Regularização para receber acabamento"],"locais":["SUBSOLO","TERREO","G1 G2","ROOFTOP"]},{"nome":"ACM e Pele de Vidro","servicos":[],"locais":["TERREO","3º LAZER"]},{"nome":"Alarme de Incêndio e acionadores","servicos":[],"locais":["TESTES"]},{"nome":"Água interna e macromedidor dos pavimentos","servicos":["Montar o cavalete"],"locais":["TESTES"]},{"nome":"Água ligações - Macromedidor","servicos":[],"locais":["TESTES"]},{"nome":"Arremate interno do portal do elevador","servicos":["Arremate do portal"],"locais":["HALL"]},{"nome":"Ascensão de SLQA","servicos":[],"locais":["SST"]},{"nome":"Bancada","servicos":["Montagem de bancadas em granito/mármore","Proteção da bancada"],"locais":["TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Bandeija, SLQA e Tela piso a piso","servicos":["Colocação de camada separadora (SLQA)","Proteção de periferia","Execução da tela","Concretagem do capeamento"],"locais":["TORRE"]},{"nome":"Bomba Incêndio","servicos":[],"locais":["TESTES"]},{"nome":"Botoeira de Emergência","servicos":[],"locais":["TESTES"]},{"nome":"Busway","servicos":["Fixação dos montantes","Instalação do barramento blindado","Instalação dos quadros medidores"],"locais":["HALL"]},{"nome":"Caiação de Elevador 01","servicos":[],"locais":["TORRE"]},{"nome":"Caiação de Elevador 02","servicos":["Descida da alimentação definitiva do poço de elevador","Corte de tela","Caiação da última fiada","Pintura de branco do fosso"],"locais":["HALL"]},{"nome":"Canteiro","servicos":["Levantamento topográfico inicial","Tapume provisório","Instalação de barracão de obra","Instalação elétrica e hidráulica provisória","Ligação de água e energia provisória","Perfuração de Poço","Placa de obra","Sistema de segurança provisório"],"locais":["FUNDAÇÃO"]},{"nome":"Chapisco estrutural e tela","servicos":["Fixação de tela","Aplicação de argamassa de aderência em concreto","Regularização da superfície","Cura"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Chave do elevador de emergência","servicos":[],"locais":["TESTES"]},{"nome":"Checklist","servicos":["Inspeção por ambientes","Arremate de rodapé","Correção de pendências","Ajustes finais"],"locais":["TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Churrasqueira","servicos":[],"locais":["TERREO"]},{"nome":"Combate a incêndio","servicos":["Instalação de detector","Acionadores","Mangueiras","Iluminação de emergencia","Extintores","Comunicação Visual","Regulagem de válvula redutora"],"locais":["SUBSOLO","G1 G2","HALL","ROOFTOP","ÁTICO"]},{"nome":"Compartimentação da caixa de gás","servicos":["Limpeza e vedação das frestas com espuma expansiva"],"locais":["HALL"]},{"nome":"Contenção - Blocos","servicos":["Locação dos blocos de ancoragem","Escavação manual/mecânica","Colocação de formas e armadura","Concretagem dos blocos","Cura do concreto","Fixação dos tirantes/ancoragens"],"locais":["FUNDAÇÃO"]},{"nome":"Contenção - Estacas","servicos":["Locação topográfica dos eixos da contenção","Perfuração das estacas de contenção","Montagem/colocação de armadura","Concretagem das estacas","Topo das estacas (corte e nivelamento)","Viga de coroamento","Limpeza e retirada de solo excedente"],"locais":["FUNDAÇÃO"]},{"nome":"Contramarco e PCF","servicos":["Fixação do contramarcos no gabarito","Alinhamento e prumo","Instalação de chumbadores","Chumbamento do contramarco","Batente e porta corta fogo"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Corrimão de Ferro","servicos":["Retirada de níveis","Chumbamento ou furação dos montantes","Solda das barras horizontais","Acabamento em desbate e massa plástica"],"locais":["TERREO"]},{"nome":"Corrimão de ferro da escada","servicos":["Retirada de níveis","Chumbamento ou furação dos montantes","Solda das barras horizontais","Acabamento em desbate e massa plástica"],"locais":["HALL"]},{"nome":"Deck Elevado","servicos":["Preparação de base","Nivelamento dos montantes horizontais e verticais","Instalação de base (ardósia)"],"locais":["ROOFTOP"]},{"nome":"Demarcação de vaga","servicos":["Esquadro das vagas","Demarcação com fitas","Pintura final"],"locais":["SUBSOLO","G1 G2"]},{"nome":"Descida de tela fachadeira","servicos":[],"locais":["SST"]},{"nome":"Detecção","servicos":[],"locais":["TESTES"]},{"nome":"Drenagem","servicos":["Escavação de valas","Colocação de tubos de drenagem","Conexões e caixas de inspeção","Aterro com brita envoltória","Ensaios de funcionamento"],"locais":["FUNDAÇÃO"]},{"nome":"Dutos Enterrados","servicos":["Escavação","Colocação de manilhas","Fechamento e compactação"],"locais":["FUNDAÇÃO"]},{"nome":"Elevação de Alvenaria e Shafts","servicos":["Assentamento de blocos/tijolos","Execução de vergas e contravergas","Elevação de shafts"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Elevador","servicos":["Instalação eletro mecânica do elevador","Proteção da cabine dos elevadores"],"locais":["HALL"]},{"nome":"Emassamento e 1ª Demão","servicos":["Massa corrida em paredes internas","Massa acrílica nas áreas molháveis","Lixamento","Aplicação de selador","1ª demão de tinta"],"locais":["SUBSOLO","TERREO","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Encunhamento","servicos":["Preenchimento superior da alvenaria com argamassa expansiva","Corte de excesso de bloco","Regularização para receber acabamento"],"locais":["TORRE"]},{"nome":"Energia Calçada","servicos":[],"locais":["TESTES"]},{"nome":"Energia Ligação C","servicos":[],"locais":["TESTES"]},{"nome":"Energia provisório interno","servicos":["Energizar o qgbt para realizar o teste"],"locais":["TESTES"]},{"nome":"Enfiação","servicos":["Passagem definitiva dos cabos elétricos","Identificação de circuitos","Testes elétricos"],"locais":["TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Escavação","servicos":["Escavação mecanizada em camadas","Escavação manual em interferências","Bombeamento de água","Carregamento e transporte de solo para bota-fora"],"locais":["FUNDAÇÃO"]},{"nome":"Esgoto Caixa e Supressão","servicos":[],"locais":["TESTES"]},{"nome":"Esgoto Ligação","servicos":[],"locais":["TESTES"]},{"nome":"Espelho d'água","servicos":[],"locais":["TERREO","3º LAZER"]},{"nome":"Esquadria Madeira","servicos":["Selagem de vão","Instalação de portas internas","Ajustes/Regulagem e ferragens","Acabamento","Limpeza final"],"locais":["TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Esquadria alumínio / Guarda Corpo","servicos":["Limpeza do contramarco","Aplicação de PU no friso","Impermeabilização do peitoril","Selamento do vão","Instalação da esquadria"],"locais":["TERREO","3º LAZER","TORRE"]},{"nome":"Esquadria alumínio / Guarda Corpo / Pele de Vidro","servicos":["Limpeza do contramarco","Aplicação de PU no friso","Impermeabilização do peitoril","Selamento do vão","Instalação da esquadria","Furação e chumbamento químico","Instalação de vidros","Vedação"],"locais":["ROOFTOP"]},{"nome":"Esquadria de Ferro","servicos":["Instalação e regulagem"],"locais":["SUBSOLO","G1 G2","ROOFTOP"]},{"nome":"Fechadura eletrônica de entrada","servicos":[],"locais":["TESTES"]},{"nome":"Fechamento de Quadro","servicos":["Montagem de disjuntores e barramentos","Identificação","Testes de funcionamento"],"locais":["TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Fechamento de barrilete","servicos":[],"locais":["TESTES"]},{"nome":"Fechamento de shaft","servicos":[],"locais":["HALL"]},{"nome":"Firestop","servicos":["Limpeza (retirada total de madeiras)","Selagem","Concretagem com lã de rocha","Pintura ablasiva"],"locais":["HALL"]},{"nome":"Forro de gesso","servicos":["Proteção do piso","Montagem de estrutura","Tabica","Fixação de chapa de gesso","Acabamento de juntas","Caixote"],"locais":["TERREO","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Fundação Bloco - Cota Superior","servicos":["Escavação manual/mecanizada dos blocos","Colocação de formas","Colocação de armaduras","Chapisco do bloco","Concretagem dos blocos","Desforma e impermeabilização","Cura e limpeza"],"locais":["FUNDAÇÃO"]},{"nome":"Fundação Blocos - Cota Inferior","servicos":["Escavação manual/mecanizada dos blocos","Colocação de formas","Colocação de armaduras","Chapisco do bloco","Concretagem dos blocos","Desforma e impermeabilização","Cura e limpeza"],"locais":["FUNDAÇÃO"]},{"nome":"Fundação Estacas - Cota Inferior","servicos":["Locação de estacas","Perfuração mecanizada","Montagem de armadura","Concretagem de estacas","Desforma do topo e regularização"],"locais":["FUNDAÇÃO"]},{"nome":"Fundação Estacas - Cota Superior","servicos":["Locação de estacas","Perfuração mecanizada","Montagem de armadura","Concretagem de estacas","Desforma do topo e regularização"],"locais":["FUNDAÇÃO"]},{"nome":"Gesso corrido teto","servicos":["Limpeza de laje","Proteção do piso com lona","Aplicação de massa de gesso","Acabamento"],"locais":["TERREO","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Grama","servicos":["Aplicação do material"],"locais":["TERREO","3º LAZER"]},{"nome":"Guarda corpo metálico","servicos":["Fixação de bases metálicas","Montagem de guarda-corpos","Soldagem e pintura de proteção"],"locais":["TERREO","TORRE"]},{"nome":"Hidrante dos pavimentos","servicos":[],"locais":["TESTES"]},{"nome":"Impermeabilização","servicos":["Preparação de base","Imprimação","Manta asfáltica","Proteção mecânica","Contrapiso"],"locais":["ROOFTOP"]},{"nome":"Impermeabilização manta asfáltica","servicos":["Preparação de base","Imprimação","Manta asfáltica","Proteção mecânica","Contrapiso"],"locais":["G1 G2"]},{"nome":"Impermeabilização polimérica","servicos":["Limpeza para aplicação","Reforço de ralos","Preparação da superfície","Aplicação de argamassa polimérica"],"locais":["TERREO","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Infraestrutura Irrigação","servicos":["Escavação superficial","Posicionamento e instalação da rede","Posicionamento e instalação dos pontos","Reaterro"],"locais":["TERREO"]},{"nome":"Instalação de Equipamentos Elétricos","servicos":["Montagem de bases","Instalações e Testes"],"locais":["ROOFTOP"]},{"nome":"Instalação de SLQA","servicos":[],"locais":["SST"]},{"nome":"Instalação de bandeja primária, intermediária e superior","servicos":[],"locais":["SST"]},{"nome":"Instalação de bombas","servicos":["Interligação da bomba"],"locais":["ÁTICO"]},{"nome":"Instalação de soleira e piso do elevador","servicos":["Revestimento pedra e cerâmico"],"locais":["HALL"]},{"nome":"Instalação de tampa","servicos":["Fixação da tampa e regulagem"],"locais":["HALL"]},{"nome":"Instalação eletro-mecânica da Pressurização","servicos":[],"locais":["TESTES"]},{"nome":"Instalação tampas e grelhas","servicos":["Limpeza e preparação","Instalação"],"locais":["SUBSOLO","G1 G2","ROOFTOP"]},{"nome":"Instalações Elétricas","servicos":["Chumbamento de caixinhas de parede","Eletrodutos","Passagem de guias","Montagem de quadros parciais","Proteção das caixinhas"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Instalações Enterradas","servicos":["Rede elétrica subterrânea","Rede pluvial"],"locais":["FUNDAÇÃO"]},{"nome":"Instalações Hidrossanitárias - Chumbamento do Prolongamento","servicos":["Rede de água fria","Rede de esgoto predial","Ventilação sanitária","Prumadas","Proteção dos prolongamentos"],"locais":["SUBSOLO","TERREO","G1 G2"]},{"nome":"Instalações Hidrossanitárias - Chumbamento e Prumadas","servicos":["Rede de água fria","Rede de esgoto predial","Ventilação sanitária","Proteção dos prolongamentos"],"locais":["TORRE","ROOFTOP"]},{"nome":"Instalações Hidrossanitárias - Esgoto Aéreo e Isométrico","servicos":["Ligação aos shafts","Rede interna de banheiros e cozinhas","Dreno rede frigorígena","Montagem de ramais suspensos","Ensaios de estanqueidade"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Instalações de Gás","servicos":["Tubulação de gás embutida","Proteção da tubulação com argamassa"],"locais":["TERREO","TORRE","ROOFTOP"]},{"nome":"Instalações de ganchos","servicos":[],"locais":["SST"]},{"nome":"Isolamento acústico","servicos":["Preparação de base","Aplicação de manta"],"locais":["ROOFTOP"]},{"nome":"Laje de piso","servicos":["Regularização do subleito","Compactação","Junta de dilatação","Execução de lastro","Armação","Concretagem e lançamento do piso","Cura do piso","Corte do piso"],"locais":["FUNDAÇÃO"]},{"nome":"Lajes Subpressão","servicos":["Execução de lastro de regularização","Montagem de fôrmas","Colocação de armadura","Concretagem da laje","Cura e desforma"],"locais":["FUNDAÇÃO"]},{"nome":"Limpeza Final","servicos":["Limpeza fina de pisos, revestimentos e vidros","Retirada de respingos de tinta e rejunte","Polimento final"],"locais":["TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP","ÁTICO"]},{"nome":"Limpeza Grossa","servicos":["Retirada de entulhos","Varrição e lavagem pesada","Retoque de rejunte"],"locais":["TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Louças e Metais","servicos":["Instalação de pias, vasos, cubas","Instalação de torneiras, misturadores e chuveiros","Teste de funcionamento"],"locais":["TERREO","G1 G2","3º LAZER","TORRE"]},{"nome":"Louças, Metais e Inox","servicos":["Instalação de pias, vasos, cubas","Instalação de torneiras, misturadores e chuveiros","Teste de funcionamento"],"locais":["ROOFTOP"]},{"nome":"Manta Asfáltica","servicos":["Limpeza e nivelamento","Meia cana (preparação de cantos)","Aplicação de prime ou asfalto","Aplicação da manta","Calefatação das emendas","Abertura e preparação dos ralos","Teste da estanqueidade"],"locais":["TERREO"]},{"nome":"Marcação de Alvenaria, Chapisco e Talisca 1ª Fiada","servicos":["Locação da alvenaria","Nivelamento com taliscas","Chapisco estrutural de base","Assentamento da 1ª fiada"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Módulos e interruptor","servicos":["Instalação de módulos, tomadas e interruptores","Testes elétricos"],"locais":["TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Montagem de Balancim","servicos":[],"locais":["FACHADA"]},{"nome":"Montagem de bandeja intermediária","servicos":["Posicionamento da mão francesa","Forração de tábuas pintadas ou maderite","Forração de zinco"],"locais":["FACHADA"]},{"nome":"Montagem de bandeja superior","servicos":[],"locais":["FACHADA"]},{"nome":"Montagem de proteção para concretagem","servicos":[],"locais":["SST"]},{"nome":"Muro de Arrimo","servicos":["Drenagem","Bloco ou parede estrutural","Armação","Concretagem","Impermeabilização","Reaterro e compactação"],"locais":["FUNDAÇÃO"]},{"nome":"Muro de Vidro","servicos":["Furação e chumbamento químico","Posicionamento dos montantes","Montagem dos perfis de alumínio","Instalação de vidros","Vedação"],"locais":["ROOFTOP"]},{"nome":"Paisagismo","servicos":["Drenagem","Terra","Irrigação","Plantas"],"locais":["TERREO","3º LAZER","ROOFTOP"]},{"nome":"Parede Drywall","servicos":["Estrutura metálica","Fixação de placas","Instalações Elétricas","Tratamento de juntas","Reforço para suportes"],"locais":["TERREO","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Pilares","servicos":["Confecção da fôrma","Montagem de fôrmas","Armação dos pilares","Instalação do rebar (SPDA)","Concretagem","Desforma"],"locais":["SUBSOLO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Pintura Externa","servicos":["Calafetes, selador e impermeabilizante","Textura","Impermeabilização de friso","Tratamento de trinca","Aplicação da textura"],"locais":["ROOFTOP","FACHADA"]},{"nome":"Pintura de piso e parede","servicos":["Massa corrida em paredes internas","Lixamento","Aplicação de selador","1ª demão de tinta","2ª demão de tinta","Preparação e pintura da PCF"],"locais":["HALL"]},{"nome":"Pintura de tubulação","servicos":["Limpeza e pintura das tubulações aparentes"],"locais":["HALL"]},{"nome":"Pintura de tubulações","servicos":["Limpeza da tubulação","Preparação e aplicação do esmalte"],"locais":["SUBSOLO","G1 G2","ÁTICO"]},{"nome":"Piso emborrachado","servicos":["Preparação de base","Aplicação de prime","Colagem da manta","Rejunte"],"locais":["ROOFTOP"]},{"nome":"Poço Elevador","servicos":["Regularização e lastro","Impermeabilização","Armadura e fôrma","Concretagem fundo e paredes","Reaterro"],"locais":["FUNDAÇÃO"]},{"nome":"Poço infiltração ou caixa","servicos":["Escavação mecanizada/manual","Colocação de anéis ou estrutura pré-moldada","Conexões de entrada/saída","Aterro e compactação lateral"],"locais":["FUNDAÇÃO"]},{"nome":"Porta corta fogo","servicos":["Limpeza do batente","Instalação e regulagem"],"locais":["SUBSOLO","G1 G2","ROOFTOP","ÁTICO"]},{"nome":"Posicionamento de tubos de linha de vida","servicos":[],"locais":["SST"]},{"nome":"Preparação Chapisco","servicos":["Limpeza de superfície","Lavagem da estrutura"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Pressurização","servicos":["Caiação da pressurização","Instalação das grelhas"],"locais":["HALL"]},{"nome":"Proteção Mecânica","servicos":["Aplicação de lona","Aplicação de massa forte"],"locais":["TERREO"]},{"nome":"Proteção de calçada","servicos":[],"locais":["SST"]},{"nome":"Proteção de escada","servicos":[],"locais":["SST"]},{"nome":"Proteção passiva horizontal e vertical","servicos":["Fosso do elevador","Proteção de shaft aberto","Fechamento de vãos abertos"],"locais":["SST"]},{"nome":"Prova de Carga","servicos":["Perfuração, armação e concretagem estacas","Montagem da instrumentação","Montagem do sistema de reação","Execução de carregamento estático/dinâmico","Emissão de laudo técnico"],"locais":["FUNDAÇÃO"]},{"nome":"Prumada de gás","servicos":["Instalação da caixa de gás","Posicionamento dos ramais dos apartamentos","Instalação da prumada de gás","Instalação da ventilação de gás"],"locais":["HALL"]},{"nome":"Prumada de incêndio","servicos":["Execução de rosqueamento do tubo","Instalação do tubo vertical","Registro de incêndio","Instalação da caixa de incêndio"],"locais":["HALL"]},{"nome":"Prumada de sistema","servicos":["Posicionamento de tubo de interligação","Instalação de quadro"],"locais":["HALL"]},{"nome":"Reboco","servicos":["Regularização de superfícies internas","Sarrafeamento e desempeno","Requadros","Cura do reboco"],"locais":["SUBSOLO","TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Reboco externo e friso 1/2","servicos":["Corte de ferro e redes","Lixar estrutura e lavar","Chapisco estrutural","Chapisco alvenaria","Talisca","Execução do reboco","Requadração e pingadeira"],"locais":["FACHADA"]},{"nome":"Reboco externo e friso 2/2","servicos":["Corte de ferro e redes","Lixar estrutura e lavar","Chapisco estrutural","Chapisco alvenaria","Talisca","Execução do reboco","Requadração e pingadeira"],"locais":["FACHADA"]},{"nome":"Recuperação de piso","servicos":["Preparação da base","Lixamento a seco manual","Lixação a seco com máquina","Lavagem","Aplicação do estuque"],"locais":["SUBSOLO","G1 G2"]},{"nome":"Recuperação de teto e parede","servicos":["Limpeza da base","Calafetação","Desempeno","Pintura ou textura de massa PVA"],"locais":["SUBSOLO","G1 G2"]},{"nome":"Recuperação do piso da escada","servicos":["Limpeza","Conferência de medidas","Regularização"],"locais":["HALL"]},{"nome":"Rede Frigorígena","servicos":["Instalação de tubulação cobre","Fixação de suportes"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Rejunte","servicos":["Preparação das juntas","Aplicação de rejunte flexível e frisamento","Rodapé da parede do drywall","Limpeza final","Proteção do piso"],"locais":["SUBSOLO","TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"Requadração de porta do elevador","servicos":["Requadração do vão"],"locais":["HALL"]},{"nome":"Requadrações de Portas","servicos":["Fixação do gabarito","Alinhamento e prumo","Requadração","Desforma"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Retirada de bandejão intermediária","servicos":[],"locais":["FACHADA"]},{"nome":"Retirada de bandejão superior","servicos":[],"locais":["FACHADA"]},{"nome":"Retirada do SLQA","servicos":[],"locais":["SST"]},{"nome":"Revestimento","servicos":["Assentamento de piso, soleira, filete e porta grelha","Assentamento de paredes","Revestimento de parede","Peitoril"],"locais":["SUBSOLO","TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]},{"nome":"SPDA","servicos":["Aterramento de hastes","Interligações de cobre","Instalação de caixas de inspeção","Medição de resistência de aterramento","Construção da base","Instalação do mastro","Instalação das cordoalhas"],"locais":["FUNDAÇÃO","ÁTICO"]},{"nome":"Sistema de Drenagem","servicos":["Chumbamento do ralo abacaxi","Espalhamento da brita","Aplicação de bidim"],"locais":["TERREO","3º LAZER"]},{"nome":"Subida de linha de vida","servicos":[],"locais":["SST"]},{"nome":"Talisca","servicos":["Execução de Talisca"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE"]},{"nome":"Talisca de parede","servicos":["Execução de Talisca"],"locais":["ROOFTOP"]},{"nome":"Talisca de piso e contrapiso","servicos":["Locação de nível","Execução de taliscas","Junta de dessolidarização","Execução de contrapiso com argamassa","Cura","Aplicação de tela Q92"],"locais":["SUBSOLO","TERREO","G1 G2","TORRE","ROOFTOP"]},{"nome":"Tela piso a piso","servicos":[],"locais":["SST"]},{"nome":"Terra e Areia","servicos":["Aplicação do material"],"locais":["TERREO","3º LAZER"]},{"nome":"Textura","servicos":["Calafetação","Aplicação do selador","Pintura Texturizada"],"locais":["ÁTICO"]},{"nome":"Textura + Barrados","servicos":["Calafetação","Aplicação do selador","Pintura Texturizada","Demarcação de barrado","Pintura do barrado"],"locais":["SUBSOLO","G1 G2"]},{"nome":"Tirante Passivo","servicos":["Locação topográfica dos grampos","Perfuração em talude","Instalação de tirantes/grampos","Injeção de nata de cimento","Colocação de tela metálica","Execução de concreto projetado","Viga de travamento de grampo"],"locais":["FUNDAÇÃO"]},{"nome":"VRP","servicos":[],"locais":["TESTES"]},{"nome":"Viga de Coroamento","servicos":["Marcação do eixo e nível da viga","Escavação da viga","Arrasamento e preparo das estacas","Confecção e montagem das formas","Montagem das armaduras","Concretagem da viga","Desforma"],"locais":["FUNDAÇÃO"]},{"nome":"Viga de Travamento fundação","servicos":["Confecção da fôrma","Montagem de fôrmas","Passagens de furações de instalações","Armação dos pilares","Impermeabilização","Concretagem","Desforma","Reaterro"],"locais":["FUNDAÇÃO"]},{"nome":"Vigas, Lajes e Escada","servicos":["Confecção de forma","Montagem de escoramento","Fôrmas de vigas e lajes","Armação","Instalações elétricas embutidas reforçadas","Instalação SPDA - rebar","Passagens hidrossanitárias reforçadas","Concretagem","Cura e desforma"],"locais":["SUBSOLO","G1 G2","TORRE"]},{"nome":"Vigas, Lajes, Escadas e Piscinas","servicos":["Confecção de forma","Montagem de escoramento","Fôrmas de vigas e lajes","Armação","Instalações elétricas embutidas reforçadas","Instalação SPDA - rebar","Passagens hidrossanitárias reforçadas","Concretagem","Cura e desforma"],"locais":["ROOFTOP"]},{"nome":"2ª Demão","servicos":["Aplicação da 2ª demão de tinta","Correção de imperfeições","Textura interna da sacada","Emassamento, 1º e 2º demão drywall"],"locais":["TERREO","G1 G2","3º LAZER","TORRE","ROOFTOP"]}];
 
 function initPkgs(){
-  if(!ls(K.pkgs)){
+  
+const DEFAULT_LOCS=["FUNDAÇÃO","SUBSOLO 2","SUBSOLO 1","TERREO","G1","G2","3º LAZER","3º TIPO","4º TIPO","5º TIPO","6º TIPO","7º TIPO","8º TIPO","9º TIPO","10º TIPO","11º TIPO","12º TIPO","13º TIPO","14º TIPO","15º TIPO","16º TIPO","17º TIPO","18º TIPO","19º TIPO","20º TIPO","21º TIPO","22º TIPO","23º TIPO","24º TIPO","25º TIPO","26º TIPO","27º TIPO","ROOFTOP","ÁTICO","HALL","SST","TESTES","FACHADA"];
+if(!ls(K.locs)){ss(K.locs,DEFAULT_LOCS.slice())}
+if(!ls(K.pkgs)){
     const pkgs=EAP_SEED.map((p,i)=>({id:1000+i,nome:p.nome,local:p.locais.join(', '),servicos:p.servicos}));
     ss(K.pkgs,pkgs);
   }
@@ -900,7 +902,7 @@ function goPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   if(name==='colaboradores'){populateFuncSelects();renderColabs();renderMonthFolder()}
-  if(name==='pacotes'){renderPkgs()}
+  if(name==='pacotes'){renderPkgs();renderLocList();populateLocFilters();populatePkgLocCheckboxes();}
   if(name==='apontamento'){populateAptSelects();renderAptFolders();renderStatusHoje()}
   if(name==='relatorio'){populateRelFilters();renderRel()}
   if(name==='dashboard'){renderDash()}
@@ -917,6 +919,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 function colabs(){return(ls(K.colabs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function pkgs(){return(ls(K.pkgs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function apts(){return ls(K.apts)||[]}
+function locs(){return(ls(K.locs)||DEFAULT_LOCS||[]).sort((a,b)=>a.localeCompare(b))}
 
 // FUNÇÕES (cargos) — lista editável
 const DEFAULT_FUNCS=['Pedreiro','Servente','Eletricista','Armador','Encanador','Carpinteiro','Pintor','Azulejista','Gesseiro','Encarregado','Mestre de Obras','Outro'];
@@ -1267,15 +1270,75 @@ function closeModal(id){document.getElementById(id).classList.remove('open')}
 // ══════════════════════════════════
 // PACOTES
 // ══════════════════════════════════
+// ══════════════════════════════════
+// LOCAIS
+// ══════════════════════════════════
+function renderLocList(){
+  const list=locs();
+  const el=document.getElementById('loc-list');
+  if(!el)return;
+  el.innerHTML=list.map(l=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text)">${l}<button onclick="delLoc('${l.replace(/'/g,"\\'")}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;line-height:1;padding:0;margin-left:2px">×</button></span>`).join('');
+}
+function addLoc(){
+  const el=document.getElementById('loc-novo');
+  const nome=(el.value||'').trim().toUpperCase();
+  if(!nome){alert('Informe o nome do local');return}
+  const list=locs();
+  if(list.some(l=>l.toUpperCase()===nome)){alert('Esse local já existe');return}
+  list.push(nome);
+  ss(K.locs,list.sort((a,b)=>a.localeCompare(b)));
+  el.value='';
+  renderLocList();
+  populateLocFilters();
+  populatePkgLocCheckboxes();
+}
+function delLoc(nome){
+  if(!confirm('Remover local "'+nome+'"?'))return;
+  ss(K.locs,locs().filter(l=>l!==nome));
+  renderLocList();
+  populateLocFilters();
+  populatePkgLocCheckboxes();
+}
+function populateLocFilters(){
+  const list=locs();
+  const pf=document.getElementById('pkg-loc-filter');
+  if(pf){
+    const cur=pf.value;
+    pf.innerHTML='<option value="">Todos os locais</option>'+list.map(l=>`<option>${l}</option>`).join('');
+    if(cur&&list.includes(cur))pf.value=cur;
+  }
+}
+function renderPkgLocCheckboxWrap(wrapId,selectedArr){
+  const list=locs();
+  const wrap=document.getElementById(wrapId);
+  if(!wrap)return;
+  const sel=new Set((selectedArr||[]).map(s=>s.toUpperCase().trim()));
+  wrap.innerHTML=list.map(l=>{
+    const checked=sel.has(l.toUpperCase())?'checked':'';
+    return `<label style="display:inline-flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;user-select:none"><input type="checkbox" value="${l}" ${checked} style="cursor:pointer"/>${l}</label>`;
+  }).join('') || '<span style="font-size:12px;color:var(--text3)">Nenhum local cadastrado.</span>';
+}
+function populatePkgLocCheckboxes(){
+  renderPkgLocCheckboxWrap('p-locais-wrap',[]);
+}
+function getCheckedLocais(wrapId){
+  const wrap=document.getElementById(wrapId);
+  if(!wrap)return [];
+  return Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.value);
+}
+
 function addPkg(){
   const nome=document.getElementById('p-nome').value.trim();
   if(!nome){alert('Informe o nome do pacote');return}
-  const local=document.getElementById('p-local').value.trim();
+  const locais=getCheckedLocais('p-locais-wrap');
+  const local=locais.join(', ');
   const svcs=document.getElementById('p-svcs').value.split(',').map(s=>s.trim()).filter(Boolean);
   const list=ls(K.pkgs)||[];
   list.push({id:Date.now(),nome,local,servicos:svcs});
   ss(K.pkgs,list);
-  ['p-nome','p-local','p-svcs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-nome').value='';
+  document.getElementById('p-svcs').value='';
+  populatePkgLocCheckboxes();
   renderPkgs();
 }
 
@@ -1314,20 +1377,11 @@ function openEditPkg(id){
   if(!p)return;
   document.getElementById('pk-id').value=id;
   document.getElementById('pk-nome').value=p.nome||'';
-  document.getElementById('pk-local').value=p.local||'';
+  renderPkgLocCheckboxWrap('pk-locais-wrap', (p.local||'').split(/[,;\/]+/).map(s=>s.trim()).filter(Boolean));
   document.getElementById('pk-svcs').value=(p.servicos||[]).join(', ');
   document.getElementById('modal-pkg').classList.add('open');
 }
-function pkAddLocal(){
-  const novo=(prompt('Novo local a adicionar:')||'').trim();
-  if(!novo)return;
-  const ta=document.getElementById('pk-local');
-  const atual=ta.value.trim();
-  const arr=atual?atual.split(',').map(s=>s.trim()).filter(Boolean):[];
-  if(arr.some(l=>l.toLowerCase()===novo.toLowerCase())){alert('Esse local já está na lista.');return}
-  arr.push(novo);
-  ta.value=arr.join(', ');
-}
+
 function pkAddSvc(){
   const novo=(prompt('Novo serviço a adicionar:')||'').trim();
   if(!novo)return;
@@ -1341,7 +1395,8 @@ function savePkg(){
   const id=+document.getElementById('pk-id').value;
   const nome=document.getElementById('pk-nome').value.trim();
   if(!nome){alert('Informe o nome do pacote');return}
-  const local=document.getElementById('pk-local').value.trim();
+  const locais=getCheckedLocais('pk-locais-wrap');
+  const local=locais.join(', ');
   const svcs=document.getElementById('pk-svcs').value.split(',').map(s=>s.trim()).filter(Boolean);
   const list=ls(K.pkgs)||[];
   const idx=list.findIndex(p=>p.id===id);if(idx<0)return;
