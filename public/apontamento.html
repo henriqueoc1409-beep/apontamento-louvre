@@ -902,7 +902,7 @@ function goPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   if(name==='colaboradores'){populateFuncSelects();renderColabs();renderMonthFolder()}
-  if(name==='pacotes'){renderPkgs()}
+  if(name==='pacotes'){renderPkgs();renderLocList();populateLocFilters();populatePkgLocCheckboxes();}
   if(name==='apontamento'){populateAptSelects();renderAptFolders();renderStatusHoje()}
   if(name==='relatorio'){populateRelFilters();renderRel()}
   if(name==='dashboard'){renderDash()}
