@@ -1277,7 +1277,7 @@ function renderLocList(){
   const list=locs();
   const el=document.getElementById('loc-list');
   if(!el)return;
-  el.innerHTML=list.map(l=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text)">${l}<button onclick="delLoc('${l.replace(/'/g,"\'")')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;line-height:1;padding:0;margin-left:2px">×</button></span>`).join('');
+  el.innerHTML=list.map(l=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text)">${l}<button onclick="delLoc('${l.replace(/'/g,"\\'")}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;line-height:1;padding:0;margin-left:2px">×</button></span>`).join('');
 }
 function addLoc(){
   const el=document.getElementById('loc-novo');
