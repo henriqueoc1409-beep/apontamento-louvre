@@ -919,6 +919,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 function colabs(){return(ls(K.colabs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function pkgs(){return(ls(K.pkgs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function apts(){return ls(K.apts)||[]}
+function locs(){return(ls(K.locs)||DEFAULT_LOCS||[]).sort((a,b)=>a.localeCompare(b))}
 
 // FUNÇÕES (cargos) — lista editável
 const DEFAULT_FUNCS=['Pedreiro','Servente','Eletricista','Armador','Encanador','Carpinteiro','Pintor','Azulejista','Gesseiro','Encarregado','Mestre de Obras','Outro'];
@@ -1269,15 +1270,75 @@ function closeModal(id){document.getElementById(id).classList.remove('open')}
 // ══════════════════════════════════
 // PACOTES
 // ══════════════════════════════════
+// ══════════════════════════════════
+// LOCAIS
+// ══════════════════════════════════
+function renderLocList(){
+  const list=locs();
+  const el=document.getElementById('loc-list');
+  if(!el)return;
+  el.innerHTML=list.map(l=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text)">${l}<button onclick="delLoc('${l.replace(/'/g,"\'")')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;line-height:1;padding:0;margin-left:2px">×</button></span>`).join('');
+}
+function addLoc(){
+  const el=document.getElementById('loc-novo');
+  const nome=(el.value||'').trim().toUpperCase();
+  if(!nome){alert('Informe o nome do local');return}
+  const list=locs();
+  if(list.some(l=>l.toUpperCase()===nome)){alert('Esse local já existe');return}
+  list.push(nome);
+  ss(K.locs,list.sort((a,b)=>a.localeCompare(b)));
+  el.value='';
+  renderLocList();
+  populateLocFilters();
+  populatePkgLocCheckboxes();
+}
+function delLoc(nome){
+  if(!confirm('Remover local "'+nome+'"?'))return;
+  ss(K.locs,locs().filter(l=>l!==nome));
+  renderLocList();
+  populateLocFilters();
+  populatePkgLocCheckboxes();
+}
+function populateLocFilters(){
+  const list=locs();
+  const pf=document.getElementById('pkg-loc-filter');
+  if(pf){
+    const cur=pf.value;
+    pf.innerHTML='<option value="">Todos os locais</option>'+list.map(l=>`<option>${l}</option>`).join('');
+    if(cur&&list.includes(cur))pf.value=cur;
+  }
+}
+function renderPkgLocCheckboxWrap(wrapId,selectedArr){
+  const list=locs();
+  const wrap=document.getElementById(wrapId);
+  if(!wrap)return;
+  const sel=new Set((selectedArr||[]).map(s=>s.toUpperCase().trim()));
+  wrap.innerHTML=list.map(l=>{
+    const checked=sel.has(l.toUpperCase())?'checked':'';
+    return `<label style="display:inline-flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;user-select:none"><input type="checkbox" value="${l}" ${checked} style="cursor:pointer"/>${l}</label>`;
+  }).join('') || '<span style="font-size:12px;color:var(--text3)">Nenhum local cadastrado.</span>';
+}
+function populatePkgLocCheckboxes(){
+  renderPkgLocCheckboxWrap('p-locais-wrap',[]);
+}
+function getCheckedLocais(wrapId){
+  const wrap=document.getElementById(wrapId);
+  if(!wrap)return [];
+  return Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.value);
+}
+
 function addPkg(){
   const nome=document.getElementById('p-nome').value.trim();
   if(!nome){alert('Informe o nome do pacote');return}
-  const local=document.getElementById('p-local').value.trim();
+  const locais=getCheckedLocais('p-locais-wrap');
+  const local=locais.join(', ');
   const svcs=document.getElementById('p-svcs').value.split(',').map(s=>s.trim()).filter(Boolean);
   const list=ls(K.pkgs)||[];
   list.push({id:Date.now(),nome,local,servicos:svcs});
   ss(K.pkgs,list);
-  ['p-nome','p-local','p-svcs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-nome').value='';
+  document.getElementById('p-svcs').value='';
+  populatePkgLocCheckboxes();
   renderPkgs();
 }
 
@@ -1316,20 +1377,11 @@ function openEditPkg(id){
   if(!p)return;
   document.getElementById('pk-id').value=id;
   document.getElementById('pk-nome').value=p.nome||'';
-  document.getElementById('pk-local').value=p.local||'';
+  renderPkgLocCheckboxWrap('pk-locais-wrap', (p.local||'').split(/[,;\/]+/).map(s=>s.trim()).filter(Boolean));
   document.getElementById('pk-svcs').value=(p.servicos||[]).join(', ');
   document.getElementById('modal-pkg').classList.add('open');
 }
-function pkAddLocal(){
-  const novo=(prompt('Novo local a adicionar:')||'').trim();
-  if(!novo)return;
-  const ta=document.getElementById('pk-local');
-  const atual=ta.value.trim();
-  const arr=atual?atual.split(',').map(s=>s.trim()).filter(Boolean):[];
-  if(arr.some(l=>l.toLowerCase()===novo.toLowerCase())){alert('Esse local já está na lista.');return}
-  arr.push(novo);
-  ta.value=arr.join(', ');
-}
+
 function pkAddSvc(){
   const novo=(prompt('Novo serviço a adicionar:')||'').trim();
   if(!novo)return;
@@ -1343,7 +1395,8 @@ function savePkg(){
   const id=+document.getElementById('pk-id').value;
   const nome=document.getElementById('pk-nome').value.trim();
   if(!nome){alert('Informe o nome do pacote');return}
-  const local=document.getElementById('pk-local').value.trim();
+  const locais=getCheckedLocais('pk-locais-wrap');
+  const local=locais.join(', ');
   const svcs=document.getElementById('pk-svcs').value.split(',').map(s=>s.trim()).filter(Boolean);
   const list=ls(K.pkgs)||[];
   const idx=list.findIndex(p=>p.id===id);if(idx<0)return;
