@@ -802,6 +802,9 @@ function isAdmin(){return currentUser&&currentUser.email===ADMIN_EMAIL}
 function refreshAdminUI(){
   const navBtn=document.getElementById('nav-admin');
   const badge=document.getElementById('admin-badge');
+  document.body.classList.toggle('is-admin', isAdmin());
+  const ro=document.getElementById('pkg-readonly-banner');
+  if(ro) ro.style.display=isAdmin()?'none':'';
   if(!navBtn)return;
   if(isAdmin()){
     navBtn.style.display='';
