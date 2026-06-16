@@ -1907,7 +1907,7 @@ function renderDash(){
     <div class="metric"><div class="metric-label">Custo total M.O.</div><div class="metric-value">${BRL(tC)}</div></div>
     <div class="metric"><div class="metric-label">Colaboradores</div><div class="metric-value">${clist.length}</div></div>
     <div class="metric"><div class="metric-label">Apontamentos hoje</div><div class="metric-value">${aptHoje.length}</div></div>`;
-  document.getElementById('dash-hoje-data').textContent=fmtD(hoje);
+  document.getElementById('dash-hoje-data').textContent=fmtD(hoje)+' · '+diaSemana(hoje);
   // status hoje
   const statusEl=document.getElementById('dash-hoje-status');
   if(!clist.length){statusEl.innerHTML='<p style="color:var(--text3);font-size:13px">Nenhum colaborador.</p>';}
