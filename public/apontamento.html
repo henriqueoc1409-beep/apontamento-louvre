@@ -915,6 +915,7 @@ function goPage(name){
 const BRL=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
 const fmtD=d=>{if(!d)return'';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`};
 const today=()=>new Date().toISOString().slice(0,10);
+const diaSemana=d=>{if(!d)return'';const dias=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];return dias[new Date(d+'T00:00:00').getDay()]};
 
 function colabs(){return(ls(K.colabs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function pkgs(){return(ls(K.pkgs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
@@ -1499,7 +1500,7 @@ function renderStatusHoje(){
   const list=colabs();
   const el=document.getElementById('apt-status-hoje');
   if(!list.length){el.innerHTML='<p style="color:var(--text3);font-size:13px">Nenhum colaborador cadastrado.</p>';return}
-  const header=`<div style="grid-column:1/-1;font-size:12px;color:var(--text2);margin-bottom:4px">Mostrando status de <strong style="color:var(--text)">${fmtD(d)}</strong> · ${list.length} colaborador(es)</div>`;
+  const header=`<div style="grid-column:1/-1;font-size:12px;color:var(--text2);margin-bottom:4px">Mostrando status de <strong style="color:var(--text)">${fmtD(d)} · ${diaSemana(d)}</strong> · ${list.length} colaborador(es)</div>`;
   el.innerHTML=header+list.map(c=>{
     const am=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='manha');
     const pm=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='tarde');
@@ -1589,7 +1590,7 @@ function renderAptFolders(){
       <div class="day-folder-header" onclick="toggleFolder('f-${d}')">
         <div class="day-folder-title">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          ${fmtD(d)}${isToday?' <span class="badge b-blue">Hoje</span>':''}
+          ${fmtD(d)} · ${diaSemana(d)}${isToday?' <span class="badge b-blue">Hoje</span>':''}
         </div>
         <div class="day-folder-meta">
           <span>${items.length} registros</span>
@@ -1906,7 +1907,7 @@ function renderDash(){
     <div class="metric"><div class="metric-label">Custo total M.O.</div><div class="metric-value">${BRL(tC)}</div></div>
     <div class="metric"><div class="metric-label">Colaboradores</div><div class="metric-value">${clist.length}</div></div>
     <div class="metric"><div class="metric-label">Apontamentos hoje</div><div class="metric-value">${aptHoje.length}</div></div>`;
-  document.getElementById('dash-hoje-data').textContent=fmtD(hoje);
+  document.getElementById('dash-hoje-data').textContent=fmtD(hoje)+' · '+diaSemana(hoje);
   // status hoje
   const statusEl=document.getElementById('dash-hoje-status');
   if(!clist.length){statusEl.innerHTML='<p style="color:var(--text3);font-size:13px">Nenhum colaborador.</p>';}
