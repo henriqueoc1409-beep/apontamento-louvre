@@ -1432,6 +1432,13 @@ function syncAptDate(d){
   ['am-data','pm-data','fa-data'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=d});
   document.getElementById('apt-alert-date').textContent='Apontando para: '+fmtD(d);
   renderStatusHoje();
+  // Abrir a pasta do dia correspondente à data selecionada
+  renderAptFolders();
+  setTimeout(()=>{
+    document.querySelectorAll('.day-folder-body.open').forEach(el=>el.classList.remove('open'));
+    const target=document.getElementById('f-'+d);
+    if(target){target.classList.add('open');target.scrollIntoView({behavior:'smooth',block:'center'})}
+  },10);
 }
 
 function loadSvcs(pfx){
@@ -1947,8 +1954,10 @@ function renderDashCalendar(){
     const dayApts=list.filter(a=>a.data===dt);
     const isTod=dt===today();
     const isFuture=dt>tod;
+    const isSunday=new Date(y,m-1,d).getDay()===0;
     let cls;
     if(isFuture){cls='future'}
+    else if(isSunday&&!dayApts.length){cls='empty'}
     else if(!clist.length){cls='empty'}
     else if(!dayApts.length){cls='has-missing'}
     else{
@@ -1969,6 +1978,9 @@ function renderMissingDays(){
   for(let i=0;i<30;i++){const d=new Date();d.setDate(d.getDate()-i);today30.push(d.toISOString().slice(0,10))}
   const missing=today30.filter(d=>{
     const dayApts=list.filter(a=>a.data===d);
+    // Ignorar domingos sem apontamento (somente conta se houve trabalho registrado)
+    const isSunday=new Date(d+'T00:00:00').getDay()===0;
+    if(isSunday&&!dayApts.length)return false;
     if(!dayApts.length)return true;
     return clist.some(c=>!dayApts.some(a=>a.colabId===c.id));
   });
