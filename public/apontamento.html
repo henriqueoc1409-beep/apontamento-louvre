@@ -915,6 +915,7 @@ function goPage(name){
 const BRL=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
 const fmtD=d=>{if(!d)return'';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`};
 const today=()=>new Date().toISOString().slice(0,10);
+const diaSemana=d=>{if(!d)return'';const dias=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];return dias[new Date(d+'T00:00:00').getDay()]};
 
 function colabs(){return(ls(K.colabs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function pkgs(){return(ls(K.pkgs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
