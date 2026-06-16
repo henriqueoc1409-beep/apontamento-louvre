@@ -1978,6 +1978,9 @@ function renderMissingDays(){
   for(let i=0;i<30;i++){const d=new Date();d.setDate(d.getDate()-i);today30.push(d.toISOString().slice(0,10))}
   const missing=today30.filter(d=>{
     const dayApts=list.filter(a=>a.data===d);
+    // Ignorar domingos sem apontamento (somente conta se houve trabalho registrado)
+    const isSunday=new Date(d+'T00:00:00').getDay()===0;
+    if(isSunday&&!dayApts.length)return false;
     if(!dayApts.length)return true;
     return clist.some(c=>!dayApts.some(a=>a.colabId===c.id));
   });
