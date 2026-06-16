@@ -1432,6 +1432,13 @@ function syncAptDate(d){
   ['am-data','pm-data','fa-data'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=d});
   document.getElementById('apt-alert-date').textContent='Apontando para: '+fmtD(d);
   renderStatusHoje();
+  // Abrir a pasta do dia correspondente à data selecionada
+  renderAptFolders();
+  setTimeout(()=>{
+    document.querySelectorAll('.day-folder-body.open').forEach(el=>el.classList.remove('open'));
+    const target=document.getElementById('f-'+d);
+    if(target){target.classList.add('open');target.scrollIntoView({behavior:'smooth',block:'center'})}
+  },10);
 }
 
 function loadSvcs(pfx){
