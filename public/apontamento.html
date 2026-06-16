@@ -1500,7 +1500,7 @@ function renderStatusHoje(){
   const list=colabs();
   const el=document.getElementById('apt-status-hoje');
   if(!list.length){el.innerHTML='<p style="color:var(--text3);font-size:13px">Nenhum colaborador cadastrado.</p>';return}
-  const header=`<div style="grid-column:1/-1;font-size:12px;color:var(--text2);margin-bottom:4px">Mostrando status de <strong style="color:var(--text)">${fmtD(d)}</strong> · ${list.length} colaborador(es)</div>`;
+  const header=`<div style="grid-column:1/-1;font-size:12px;color:var(--text2);margin-bottom:4px">Mostrando status de <strong style="color:var(--text)">${fmtD(d)} · ${diaSemana(d)}</strong> · ${list.length} colaborador(es)</div>`;
   el.innerHTML=header+list.map(c=>{
     const am=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='manha');
     const pm=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='tarde');
