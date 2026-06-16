@@ -31,6 +31,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;min-height:100vh}
+body:not(.is-admin) .admin-only{display:none!important}
 /* AUTH */
 #auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:linear-gradient(135deg,#F6F8FC 0%,#EEF2FB 100%)}
 .auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(16,16,200,.08)}
@@ -369,7 +370,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
     Pacotes EAP
   </div>
-  <div class="card" style="margin-bottom:1.25rem">
+  <div class="alert alert-info" id="pkg-readonly-banner" style="display:none;margin-bottom:1rem">🔒 Visualização somente leitura. Apenas o administrador (henrique@tresincorporadora.com.br) pode adicionar, editar ou excluir pacotes e locais.</div>
+  <div class="card admin-only" style="margin-bottom:1.25rem">
     <div class="card-title">Adicionar pacote</div>
     <div class="fg fg2">
       <div class="field"><label>Nome do pacote</label><input id="p-nome" placeholder="Nome do novo pacote"/></div>
@@ -383,7 +385,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
       Adicionar pacote
     </button>
   </div>
-  <div class="card" style="margin-bottom:1.25rem">
+  <div class="card admin-only" style="margin-bottom:1.25rem">
     <div class="card-title">Locais de obra</div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
       <input id="loc-novo" placeholder="Nome do novo local" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:var(--font);font-size:14px"/>
