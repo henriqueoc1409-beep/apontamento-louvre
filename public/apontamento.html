@@ -1954,8 +1954,10 @@ function renderDashCalendar(){
     const dayApts=list.filter(a=>a.data===dt);
     const isTod=dt===today();
     const isFuture=dt>tod;
+    const isSunday=new Date(y,m-1,d).getDay()===0;
     let cls;
     if(isFuture){cls='future'}
+    else if(isSunday&&!dayApts.length){cls='empty'}
     else if(!clist.length){cls='empty'}
     else if(!dayApts.length){cls='has-missing'}
     else{
