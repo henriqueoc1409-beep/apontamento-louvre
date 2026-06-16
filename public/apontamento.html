@@ -1336,6 +1336,7 @@ function getCheckedLocais(wrapId){
 }
 
 function addPkg(){
+  if(!isAdmin()){alert('Apenas o administrador pode adicionar pacotes.');return}
   const nome=document.getElementById('p-nome').value.trim();
   if(!nome){alert('Informe o nome do pacote');return}
   const locais=getCheckedLocais('p-locais-wrap');
@@ -1351,6 +1352,7 @@ function addPkg(){
 }
 
 function delPkg(id){
+  if(!isAdmin()){alert('Apenas o administrador pode excluir pacotes.');return}
   if(!confirm('Remover pacote?'))return;
   ss(K.pkgs,(ls(K.pkgs)||[]).filter(p=>p.id!==id));
   renderPkgs();
@@ -1400,6 +1402,7 @@ function pkAddSvc(){
   ta.value=arr.join(', ');
 }
 function savePkg(){
+  if(!isAdmin()){alert('Apenas o administrador pode editar pacotes.');return}
   const id=+document.getElementById('pk-id').value;
   const nome=document.getElementById('pk-nome').value.trim();
   if(!nome){alert('Informe o nome do pacote');return}
