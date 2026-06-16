@@ -1375,8 +1375,9 @@ function renderPkgs(){
         <td style="font-size:12px;color:var(--text2)">${p.local||'—'}</td>
         <td style="font-size:12px">${(p.servicos||[]).slice(0,3).join(' · ')}${(p.servicos||[]).length>3?` <span style="color:var(--text3)">+${(p.servicos||[]).length-3} mais</span>`:''}</td>
         <td style="white-space:nowrap">
-          <button class="btn btn-ghost btn-sm" onclick="openEditPkg(${p.id})">Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="delPkg(${p.id})">Excluir</button>
+          <button class="btn btn-ghost btn-sm admin-only" onclick="openEditPkg(${p.id})">Editar</button>
+          <button class="btn btn-danger btn-sm admin-only" onclick="delPkg(${p.id})">Excluir</button>
+          ${isAdmin()?'':'<span style="font-size:12px;color:var(--text3)">somente leitura</span>'}
         </td>
       </tr>`).join('')}</tbody>
     </table></div>`;
