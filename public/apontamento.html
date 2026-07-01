@@ -822,18 +822,17 @@ function authTab(t){
   document.getElementById('tab-register').classList.toggle('active',t==='register');
 }
 
-function doLogin(){
+async function doLogin(){
   const email=document.getElementById('l-email').value.trim().toLowerCase();
   const senha=document.getElementById('l-senha').value;
-  const users=ls(K.users)||[];
-  const u=users.find(u=>u.email===email&&u.senha===senha&&u.aprovado);
-  if(!u){setMsg('l-msg',u===undefined?'Usuário não encontrado ou aguardando aprovação.':'Senha incorreta.','err');return}
-  ss(K.sessions,{id:u.id,email:u.email,nome:u.nome});
-  currentUser=u;
-  startApp();
+  if(!email||!senha){setMsg('l-msg','Preencha e-mail e senha.','err');return}
+  setMsg('l-msg','Entrando...','info');
+  const {data,error}=await sb.auth.signInWithPassword({email,password:senha});
+  if(error){setMsg('l-msg','E-mail ou senha inválidos.','err');return}
+  await bootAuthenticated(data.user);
 }
 
-function doRegister(){
+async function doRegister(){
   const nome=document.getElementById('r-nome').value.trim();
   const email=document.getElementById('r-email').value.trim().toLowerCase();
   const senha=document.getElementById('r-senha').value;
@@ -841,20 +840,48 @@ function doRegister(){
   if(!nome||!email||!senha){setMsg('r-msg','Preencha todos os campos.','err');return}
   if(senha!==conf){setMsg('r-msg','As senhas não coincidem.','err');return}
   if(senha.length<6){setMsg('r-msg','Senha deve ter mínimo 6 caracteres.','err');return}
-  const users=ls(K.users)||[];
-  if(users.find(u=>u.email===email)){setMsg('r-msg','E-mail já cadastrado.','err');return}
-  // admin auto-aprovado
-  const aprovado=email===ADMIN_EMAIL;
-  users.push({id:Date.now(),nome,email,senha,aprovado});
-  ss(K.users,users);
-  if(aprovado){setMsg('r-msg','Acesso liberado! Faça login.','ok')}
+  setMsg('r-msg','Enviando solicitação...','info');
+  const {error}=await sb.auth.signUp({
+    email,password:senha,
+    options:{ data:{nome}, emailRedirectTo: window.location.origin }
+  });
+  if(error){setMsg('r-msg','Erro: '+error.message,'err');return}
+  if(email===ADMIN_EMAIL){setMsg('r-msg','Conta admin criada! Faça login.','ok')}
   else{setMsg('r-msg','Solicitação enviada! Aguarde aprovação de '+ADMIN_EMAIL+'.','info')}
 }
 
-function doLogout(){
-  ss(K.sessions,null);currentUser=null;
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser=null;cloudReady=false;
+  Object.keys(dataCache).forEach(k=>delete dataCache[k]);
   document.getElementById('app').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
+}
+
+// Carrega perfil, verifica aprovação, hidrata cloud e inicia app
+async function bootAuthenticated(user){
+  const {data:prof,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+  if(error||!prof){setMsg('l-msg','Erro ao carregar perfil: '+(error?error.message:'perfil não encontrado'),'err');await sb.auth.signOut();return}
+  if(!prof.approved){
+    setMsg('l-msg','Seu acesso ainda não foi aprovado por '+ADMIN_EMAIL+'.','info');
+    await sb.auth.signOut();return;
+  }
+  currentUser={id:user.id,email:prof.email,nome:prof.nome||prof.email.split('@')[0],aprovado:true};
+  await hydrateCloud();
+  await refreshProfilesCache();
+  startApp();
+}
+
+// Puxa a lista de perfis para o cache (usada pelo painel Admin e badge)
+async function refreshProfilesCache(){
+  if(!currentUser) return;
+  // admin vê todos; usuário comum só o próprio (RLS cuida)
+  const {data,error}=await sb.from('profiles').select('id,email,nome,approved,created_at').order('created_at',{ascending:false});
+  if(error){ console.warn(error);return; }
+  // grava em memória (não vai para a nuvem)
+  dataCache[K.users]=(data||[]).map(p=>({
+    id:p.id, nome:p.nome||p.email.split('@')[0], email:p.email, aprovado:!!p.approved, created_at:p.created_at
+  }));
 }
 
 function setMsg(id,txt,type){
