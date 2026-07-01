@@ -914,11 +914,13 @@ function refreshAdminUI(){
   }
 }
 
-function renderAdmin(){
+async function renderAdmin(){
   if(!isAdmin()){
     document.getElementById('page-admin').innerHTML='<div class="alert alert-warn">Acesso restrito ao administrador geral.</div>';
     return;
   }
+  await refreshProfilesCache();
+  refreshAdminUI();
   const users=ls(K.users)||[];
   const pending=users.filter(u=>!u.aprovado);
   const approved=users.filter(u=>u.aprovado);
@@ -929,10 +931,10 @@ function renderAdmin(){
     pEl.innerHTML=`<table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Solicitado em</th><th style="text-align:right">Ações</th></tr></thead><tbody>${pending.map(u=>`<tr>
       <td style="font-weight:600">${u.nome}</td>
       <td>${u.email}</td>
-      <td style="font-size:12px;color:var(--text2)">${u.id?new Date(u.id).toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${u.created_at?new Date(u.created_at).toLocaleDateString('pt-BR'):'—'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn btn-success btn-sm" onclick="approveUser(${u.id})">✓ Aprovar</button>
-        <button class="btn btn-danger btn-sm" onclick="rejectUser(${u.id})">✗ Rejeitar</button>
+        <button class="btn btn-success btn-sm" onclick="approveUser('${u.id}')">✓ Aprovar</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectUser('${u.id}')">✗ Rejeitar</button>
       </td>
     </tr>`).join('')}</tbody></table>`;
   }
@@ -944,34 +946,34 @@ function renderAdmin(){
       <td>${u.email}</td>
       <td>${u.email===ADMIN_EMAIL?'<span class="badge b-purple">Admin geral</span>':'<span class="badge b-blue">Usuário</span>'}</td>
       <td style="text-align:right;white-space:nowrap">
-        ${u.email===ADMIN_EMAIL?'<span style="color:var(--text3);font-size:12px">protegido</span>':`<button class="btn btn-ghost btn-sm" onclick="revokeUser(${u.id})">Revogar acesso</button> <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">Excluir</button>`}
+        ${u.email===ADMIN_EMAIL?'<span style="color:var(--text3);font-size:12px">protegido</span>':`<button class="btn btn-ghost btn-sm" onclick="revokeUser('${u.id}')">Revogar acesso</button> <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Excluir</button>`}
       </td>
     </tr>`).join('')}</tbody></table>`;
   }
 }
 
-function approveUser(id){
-  const users=ls(K.users)||[];
-  const i=users.findIndex(u=>u.id===id);if(i<0)return;
-  users[i].aprovado=true;ss(K.users,users);
-  renderAdmin();refreshAdminUI();
+async function approveUser(id){
+  const {error}=await sb.from('profiles').update({approved:true}).eq('id',id);
+  if(error){alert('Erro: '+error.message);return}
+  await renderAdmin();
 }
-function rejectUser(id){
-  if(!confirm('Rejeitar e remover esta solicitação?'))return;
-  ss(K.users,(ls(K.users)||[]).filter(u=>u.id!==id));
-  renderAdmin();refreshAdminUI();
+async function rejectUser(id){
+  if(!confirm('Rejeitar esta solicitação? O usuário ficará bloqueado.'))return;
+  const {error}=await sb.from('profiles').update({approved:false}).eq('id',id);
+  if(error){alert('Erro: '+error.message);return}
+  await renderAdmin();
 }
-function revokeUser(id){
+async function revokeUser(id){
   if(!confirm('Revogar o acesso deste usuário? Ele precisará ser aprovado novamente.'))return;
-  const users=ls(K.users)||[];
-  const i=users.findIndex(u=>u.id===id);if(i<0)return;
-  users[i].aprovado=false;ss(K.users,users);
-  renderAdmin();refreshAdminUI();
+  const {error}=await sb.from('profiles').update({approved:false}).eq('id',id);
+  if(error){alert('Erro: '+error.message);return}
+  await renderAdmin();
 }
-function deleteUser(id){
-  if(!confirm('Excluir definitivamente este usuário?'))return;
-  ss(K.users,(ls(K.users)||[]).filter(u=>u.id!==id));
-  renderAdmin();refreshAdminUI();
+async function deleteUser(id){
+  if(!confirm('Excluir definitivamente o perfil deste usuário?'))return;
+  const {error}=await sb.from('profiles').delete().eq('id',id);
+  if(error){alert('Erro: '+error.message);return}
+  await renderAdmin();
 }
 
 function startApp(){
@@ -985,15 +987,13 @@ function startApp(){
 }
 
 // check existing session
-window.addEventListener('DOMContentLoaded',()=>{
-  const sess=ls(K.sessions);
-  if(sess){
-    const users=ls(K.users)||[];
-    const u=users.find(u=>u.id===sess.id&&u.aprovado);
-    if(u){currentUser=u;startApp();return}
-  }
+window.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('app').style.display='none';
+  const {data:{session}}=await sb.auth.getSession();
+  if(session&&session.user){
+    await bootAuthenticated(session.user);
+  }
 });
 
 // ══════════════════════════════════
