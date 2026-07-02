@@ -338,6 +338,10 @@ body:not(.is-admin) .admin-only{display:none!important}
         <button class="btn btn-ghost btn-sm" onclick="openDupMes()" title="Duplicar colaboradores de outro mês">📋 Duplicar de outro mês</button>
       </div>
     </div>
+    <div class="alert alert-info" style="margin-bottom:10px;font-size:12.5px;line-height:1.5">
+      <b>📅 Período de fechamento (20 a 20):</b> o salário do mês corresponde ao intervalo <b>do dia 20 do mês anterior ao dia 20 do mês selecionado</b>.<br/>
+      Exemplo: <b>Julho</b> = 20/jun → 20/jul. Ajuste o salário de cada colaborador considerando esse ciclo de pagamento.
+    </div>
     <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Cada colaborador fica salvo somente no mês em que foi incluído. Use <b>Duplicar de outro mês</b> para trazer todos de uma vez ou <b>Incluir colaborador</b> para adicionar individualmente, ajustando o salário do mês.</p>
     <div id="mf-list"></div>
   </div>
@@ -418,6 +422,7 @@ body:not(.is-admin) .admin-only{display:none!important}
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:.75rem;flex-wrap:wrap">
       <div class="card-title" style="margin-bottom:0">Status dos colaboradores</div>
       <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="copyPrevDay()" title="Copiar apontamentos do dia anterior para a data selecionada">📋 Copiar do dia anterior</button>
         <label style="font-size:12px;color:var(--text2);font-weight:500">Data:</label>
         <input id="apt-status-date" type="date" onchange="syncAptDate(this.value)" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font)"/>
       </div>
@@ -490,14 +495,20 @@ body:not(.is-admin) .admin-only{display:none!important}
       Registrar Tarde
     </button>
   </div>
-  <!-- FALTA -->
+  <!-- FALTA / FÉRIAS -->
   <div class="card" style="margin-bottom:1.25rem;border-color:rgba(183,28,28,.30)">
     <div class="card-title" style="color:#8B0000;display:flex;align-items:center;gap:6px">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      FALTA
+      FALTA / FÉRIAS
     </div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Registre quando o colaborador não comparecer. O dia não será computado no custo.</p>
-    <div class="fg fg3">
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Registre quando o colaborador não comparecer (falta) ou estiver em <b>férias</b>. O dia não será computado no custo.</p>
+    <div class="fg fg4">
+      <div class="field"><label>Tipo</label>
+        <select id="fa-tipo">
+          <option value="falta">Falta</option>
+          <option value="ferias">Férias</option>
+        </select>
+      </div>
       <div class="field"><label>Data</label><input id="fa-data" type="date"/></div>
       <div class="field"><label>Colaborador</label><select id="fa-colab"><option value="">— selecione —</option></select></div>
       <div class="field"><label>Período</label>
@@ -510,7 +521,7 @@ body:not(.is-admin) .admin-only{display:none!important}
     </div>
     <button class="btn" style="background:#8B0000;color:#fff" onclick="addFalta()">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      Marcar Falta
+      Registrar
     </button>
   </div>
   <!-- FOLDERS -->
@@ -600,6 +611,7 @@ body:not(.is-admin) .admin-only{display:none!important}
         <select id="ea-tipo" onchange="toggleEaFalta()">
           <option value="trabalho">Trabalho</option>
           <option value="falta">Falta</option>
+          <option value="ferias">Férias</option>
         </select>
       </div>
       <div class="field"><label>Data</label><input id="ea-data" type="date"/></div>
@@ -1246,9 +1258,11 @@ function renderMonthFolder(){
     const hint=all.length?'Use <b>Duplicar de outro mês</b> ou <b>Incluir colaborador</b> para adicioná-los a este mês.':'Cadastre um colaborador no formulário abaixo.';
     el.innerHTML=`<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px"><div style="margin-bottom:6px"><span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span></div>Nenhum colaborador neste mês.<br/>${hint}</div>`;return;
   }
+  const per=periodo2020(mes);
   el.innerHTML=`
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.6rem">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:.6rem">
       <span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span>
+      <span class="badge b-amber" style="font-size:12px;padding:4px 10px" title="Período de fechamento salarial">🗓️ ${per}</span>
       <span class="badge b-teal" style="font-size:12px;padding:4px 10px">${list.length} colaborador(es) neste mês</span>
     </div>
     <div style="overflow:auto"><table class="tbl">
@@ -1602,6 +1616,16 @@ function getColabSal(colab,dataStr){
   return{sal:+colab.sal||0,h:+colab.h||1};
 }
 
+// Período de fechamento salarial (20 do mês anterior → 20 do mês)
+function periodo2020(mesStr){
+  if(!mesStr)return'';
+  const [y,mo]=mesStr.split('-').map(Number);
+  const ini=new Date(y,mo-2,20);
+  const fim=new Date(y,mo-1,20);
+  const f=d=>String(d.getDate()).padStart(2,'0')+'/'+['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()];
+  return `20/${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][ini.getMonth()]} → 20/${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][fim.getMonth()]}`;
+}
+
 function renderStatusHoje(){
   const sd=document.getElementById('apt-status-date');
   const d=(sd&&sd.value)?sd.value:today();
@@ -1614,11 +1638,14 @@ function renderStatusHoje(){
     const am=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='manha');
     const pm=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='tarde');
     const amF=am&&am.falta, pmF=pm&&pm.falta;
+    const amFe=am&&am.ferias, pmFe=pm&&pm.ferias;
+    const lbl=(f,fe,per)=>fe?('🏖 Férias '+per):(f?('✗ Falta '+per):'');
     let cls,txt;
-    if(amF&&pmF){cls='status-missing';txt='✗ Falta (dia)'}
-    else if(am&&pm){cls='status-ok';txt='✓ Manhã e Tarde'+((amF||pmF)?' (c/ falta)':'')}
-    else if(am){cls='status-warn';txt=amF?'✗ Falta manhã':'⚑ Só manhã'}
-    else if(pm){cls='status-warn';txt=pmF?'✗ Falta tarde':'⚑ Só tarde'}
+    if(amFe&&pmFe){cls='status-warn';txt='🏖 Férias (dia)'}
+    else if(amF&&pmF){cls='status-missing';txt='✗ Falta (dia)'}
+    else if(am&&pm){cls='status-ok';txt='✓ Manhã e Tarde'+((amF||pmF||amFe||pmFe)?' (c/ ausência)':'')}
+    else if(am){cls='status-warn';txt=amFe?'🏖 Férias manhã':(amF?'✗ Falta manhã':'⚑ Só manhã')}
+    else if(pm){cls='status-warn';txt=pmFe?'🏖 Férias tarde':(pmF?'✗ Falta tarde':'⚑ Só tarde')}
     else{cls='status-missing';txt='✗ Sem apontamento'}
     return`<div class="status-card ${cls}"><div class="status-name">${c.nome}</div><div class="status-detail">${txt}</div></div>`;
   }).join('');
@@ -1665,6 +1692,7 @@ function addFalta(){
   const data=document.getElementById('fa-data').value;
   const colabId=+document.getElementById('fa-colab').value;
   const per=document.getElementById('fa-per').value;
+  const tipo=(document.getElementById('fa-tipo')||{value:'falta'}).value;
   if(!data||!colabId||!per){alert('Preencha data, colaborador e período.');return}
   const colab=colabs().find(c=>c.id===colabId);
   const list=apts();
@@ -1675,7 +1703,7 @@ function addFalta(){
     }
   }
   periodos.forEach(p=>{
-    list.push({id:Date.now()+Math.random(),data,periodo:p,colabId,colabNome:colab?colab.nome:'',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0,falta:true});
+    list.push({id:Date.now()+Math.random(),data,periodo:p,colabId,colabNome:colab?colab.nome:'',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0,falta:true,ferias:tipo==='ferias'});
   });
   ss(K.apts,list);
   renderAptFolders();
@@ -1724,7 +1752,7 @@ function renderPeriodSection(items,periodo){
     ${items.length?items.map(a=>a.falta?`<div class="apt-row">
       <div class="apt-info">
         <span class="apt-name">${a.colabNome}</span>
-        <span class="badge b-red">FALTA</span>
+        <span class="badge ${a.ferias?'b-amber':'b-red'}">${a.ferias?'🏖 FÉRIAS':'FALTA'}</span>
         <span style="font-size:12px;color:var(--text2)">sem custo</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -1760,13 +1788,82 @@ function delApt(id){
   renderAptFolders();renderStatusHoje();
 }
 
+function copyPrevDay(){
+  const sd=document.getElementById('apt-status-date');
+  const alvo=(sd&&sd.value)?sd.value:today();
+  // dia anterior (calendar) — pega o último dia com apontamentos até 14 dias atrás
+  const [y,m,d]=alvo.split('-').map(Number);
+  const base=new Date(y,m-1,d);
+  const list=apts();
+  let origem=null;
+  for(let i=1;i<=14;i++){
+    const dt=new Date(base);dt.setDate(base.getDate()-i);
+    const s=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    if(list.some(a=>a.data===s)){origem=s;break}
+  }
+  if(!origem){alert('Não encontrei apontamentos nos últimos 14 dias para copiar.');return}
+  const doOrigem=list.filter(a=>a.data===origem);
+  // agrupar por colaborador para o modal de seleção
+  const porColab={};
+  doOrigem.forEach(a=>{if(!porColab[a.colabId])porColab[a.colabId]={nome:a.colabNome||('Colab '+a.colabId),itens:[]};porColab[a.colabId].itens.push(a)});
+  const ids=Object.keys(porColab);
+  if(!ids.length){alert('Sem apontamentos no dia anterior.');return}
+  const rows=ids.map(id=>{
+    const g=porColab[id];
+    const resumo=g.itens.map(a=>{
+      if(a.ferias)return'🏖 Férias '+a.periodo;
+      if(a.falta)return'✗ Falta '+a.periodo;
+      return (a.periodo==='manha'?'🌅':'🌙')+' '+(a.pkgNome||'')+(a.local?' · '+a.local:'')+' ('+a.horas+'h)';
+    }).join(' | ');
+    return `<label style="display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer">
+      <input type="checkbox" class="cp-chk" value="${id}" checked style="margin-top:3px"/>
+      <div style="flex:1;font-size:12.5px"><b>${g.nome}</b><br/><span style="color:var(--text2)">${resumo}</span></div>
+    </label>`;
+  }).join('');
+  const [yo,mo,doo]=origem.split('-');
+  const fmt=s=>{const[a,b,c]=s.split('-');return c+'/'+b+'/'+a};
+  const modalHtml=`<div class="modal-overlay open" id="modal-copyprev" style="z-index:9999">
+    <div class="modal" style="max-width:640px">
+      <div class="modal-title">📋 Copiar apontamentos</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">De <b>${fmt(origem)}</b> → para <b>${fmt(alvo)}</b></p>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Colaboradores que já têm apontamento no dia de destino serão ignorados.</p>
+      <div style="max-height:50vh;overflow:auto;margin-bottom:12px">${rows}</div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-copyprev').remove()">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmCopyPrev('${origem}','${alvo}')">Copiar selecionados</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',modalHtml);
+}
+
+function confirmCopyPrev(origem,alvo){
+  const chosen=[...document.querySelectorAll('#modal-copyprev .cp-chk:checked')].map(c=>+c.value);
+  document.getElementById('modal-copyprev').remove();
+  if(!chosen.length){alert('Nenhum colaborador selecionado.');return}
+  const list=apts();
+  const doOrigem=list.filter(a=>a.data===origem&&chosen.includes(a.colabId));
+  let copiados=0,pulados=0;
+  doOrigem.forEach(a=>{
+    if(list.some(x=>x.colabId===a.colabId&&x.data===alvo&&x.periodo===a.periodo)){pulados++;return}
+    const colab=colabs().find(c=>c.id===a.colabId);
+    let custoH=a.custoH,custo=a.custo;
+    if(!a.falta&&colab){const {sal:cs,h:ch}=getColabSal(colab,alvo);custoH=ch?cs/ch:0;custo=custoH*(a.horas||0)}
+    list.push({...a,id:Date.now()+Math.random(),data:alvo,custoH,custo});
+    copiados++;
+  });
+  ss(K.apts,list);
+  renderAptFolders();renderStatusHoje();
+  alert(`✓ ${copiados} apontamento(s) copiado(s).${pulados?` ${pulados} pulado(s) (já existiam).`:''}`);
+}
+
 const LOCAIS_OBRA=['FUNDAÇÃO','SUBSOLO 2','SUBSOLO 1','TERREO','G1','G2','3º LAZER','3º TIPO','4º TIPO','5º TIPO','6º TIPO','7º TIPO','8º TIPO','9º TIPO','10º TIPO','11º TIPO','12º TIPO','13º TIPO','14º TIPO','15º TIPO','16º TIPO','17º TIPO','18º TIPO','19º TIPO','20º TIPO','21º TIPO','22º TIPO','23º TIPO','24º TIPO','25º TIPO','26º TIPO','27º TIPO','ROOFTOP','ÁTICO','HALL','SST','TESTES','FACHADA'];
 
 function openEditApt(id){
   const a=apts().find(x=>String(x.id)===String(id));
   if(!a)return;
   document.getElementById('ea-id').value=String(a.id);
-  document.getElementById('ea-tipo').value=a.falta?'falta':'trabalho';
+  document.getElementById('ea-tipo').value=a.ferias?'ferias':(a.falta?'falta':'trabalho');
   document.getElementById('ea-data').value=a.data;
   document.getElementById('ea-periodo').value=a.periodo;
   const sc=document.getElementById('ea-colab');
@@ -1807,8 +1904,9 @@ function loadEaSvcs(){
 }
 
 function toggleEaFalta(){
-  const isFalta=document.getElementById('ea-tipo').value==='falta';
-  document.getElementById('ea-trabalho-fields').style.display=isFalta?'none':'';
+  const t=document.getElementById('ea-tipo').value;
+  const isAus=t==='falta'||t==='ferias';
+  document.getElementById('ea-trabalho-fields').style.display=isAus?'none':'';
 }
 
 function saveEditApt(){
@@ -1826,9 +1924,10 @@ function saveEditApt(){
   if(dup){alert('Já existe apontamento desse colaborador para esse período/dia.');return}
   const colab=colabs().find(c=>c.id===colabId);
   const base={...list[idx],data,periodo,colabId,colabNome:colab?colab.nome:list[idx].colabNome};
-  if(tipo==='falta'){
-    list[idx]={...base,falta:true,pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0};
+  if(tipo==='falta'||tipo==='ferias'){
+    list[idx]={...base,falta:true,ferias:tipo==='ferias',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0};
   }else{
+    delete base.ferias;
     const pkgId=+document.getElementById('ea-pkg').value;
     const svc=document.getElementById('ea-svc').value;
     const local=document.getElementById('ea-local').value;
