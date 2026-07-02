@@ -1751,7 +1751,7 @@ function renderPeriodSection(items,periodo){
     ${items.length?items.map(a=>a.falta?`<div class="apt-row">
       <div class="apt-info">
         <span class="apt-name">${a.colabNome}</span>
-        <span class="badge b-red">FALTA</span>
+        <span class="badge ${a.ferias?'b-amber':'b-red'}">${a.ferias?'🏖 FÉRIAS':'FALTA'}</span>
         <span style="font-size:12px;color:var(--text2)">sem custo</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
