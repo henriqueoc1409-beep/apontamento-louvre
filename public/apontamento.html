@@ -2111,23 +2111,29 @@ function exportPDF(){
 // ══════════════════════════════════
 function renderDash(){
   const list=apts();
-  const clist=colabs();
+  const allColabs=colabs();
   const tH=list.reduce((s,a)=>s+a.horas,0);
   const tC=list.reduce((s,a)=>s+a.custo,0);
   const hoje=today();
+  // Pasta mensal vigente: fechamento no dia 20 → antes/igual a 20 usa o mês atual, depois usa o próximo
+  const [hy,hm,hd]=hoje.split('-').map(Number);
+  const folderD=new Date(hy,hm-1+(hd>20?1:0),1);
+  const folderMes=folderD.getFullYear()+'-'+String(folderD.getMonth()+1).padStart(2,'0');
+  const clist=allColabs.filter(c=>(c.salHist||[]).some(s=>s.mes===folderMes));
   const aptHoje=list.filter(a=>a.data===hoje);
   document.getElementById('dash-metrics').innerHTML=`
     <div class="metric"><div class="metric-label">Total de apontamentos</div><div class="metric-value">${list.length}</div></div>
     <div class="metric"><div class="metric-label">Horas apontadas</div><div class="metric-value">${tH.toFixed(1)}h</div></div>
     <div class="metric"><div class="metric-label">Custo total M.O.</div><div class="metric-value">${BRL(tC)}</div></div>
-    <div class="metric"><div class="metric-label">Colaboradores</div><div class="metric-value">${clist.length}</div></div>
+    <div class="metric"><div class="metric-label">Colaboradores (pasta ${folderMes})</div><div class="metric-value">${clist.length}</div></div>
     <div class="metric"><div class="metric-label">Apontamentos hoje</div><div class="metric-value">${aptHoje.length}</div></div>`;
   document.getElementById('dash-hoje-data').textContent=fmtD(hoje)+' · '+diaSemana(hoje);
   // status hoje
   const statusEl=document.getElementById('dash-hoje-status');
-  if(!clist.length){statusEl.innerHTML='<p style="color:var(--text3);font-size:13px">Nenhum colaborador.</p>';}
+  if(!clist.length){statusEl.innerHTML='<p style="color:var(--text3);font-size:13px">Nenhum colaborador na pasta mensal vigente ('+folderMes+'). Adicione na aba <strong>Colaboradores</strong>.</p>';}
   else{
-    statusEl.innerHTML=clist.map(c=>{
+    const hdr=`<div style="grid-column:1/-1;font-size:12px;color:var(--text2);margin-bottom:4px">Pasta mensal vigente: <strong style="color:var(--text)">${folderMes}</strong> · ${periodo2020(folderMes)} · ${clist.length} colaborador(es)</div>`;
+    statusEl.innerHTML=hdr+clist.map(c=>{
       const am=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='manha');
       const pm=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='tarde');
       const cls=am&&pm?'status-ok':am||pm?'status-warn':'status-missing';
