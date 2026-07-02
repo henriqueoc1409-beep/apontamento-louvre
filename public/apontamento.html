@@ -422,6 +422,7 @@ body:not(.is-admin) .admin-only{display:none!important}
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:.75rem;flex-wrap:wrap">
       <div class="card-title" style="margin-bottom:0">Status dos colaboradores</div>
       <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="copyPrevDay()" title="Copiar apontamentos do dia anterior para a data selecionada">📋 Copiar do dia anterior</button>
         <label style="font-size:12px;color:var(--text2);font-weight:500">Data:</label>
         <input id="apt-status-date" type="date" onchange="syncAptDate(this.value)" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font)"/>
       </div>
