@@ -1835,8 +1835,9 @@ function loadEaSvcs(){
 }
 
 function toggleEaFalta(){
-  const isFalta=document.getElementById('ea-tipo').value==='falta';
-  document.getElementById('ea-trabalho-fields').style.display=isFalta?'none':'';
+  const t=document.getElementById('ea-tipo').value;
+  const isAus=t==='falta'||t==='ferias';
+  document.getElementById('ea-trabalho-fields').style.display=isAus?'none':'';
 }
 
 function saveEditApt(){
@@ -1854,9 +1855,10 @@ function saveEditApt(){
   if(dup){alert('Já existe apontamento desse colaborador para esse período/dia.');return}
   const colab=colabs().find(c=>c.id===colabId);
   const base={...list[idx],data,periodo,colabId,colabNome:colab?colab.nome:list[idx].colabNome};
-  if(tipo==='falta'){
-    list[idx]={...base,falta:true,pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0};
+  if(tipo==='falta'||tipo==='ferias'){
+    list[idx]={...base,falta:true,ferias:tipo==='ferias',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0};
   }else{
+    delete base.ferias;
     const pkgId=+document.getElementById('ea-pkg').value;
     const svc=document.getElementById('ea-svc').value;
     const local=document.getElementById('ea-local').value;
