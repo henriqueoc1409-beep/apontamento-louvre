@@ -1688,6 +1688,7 @@ function addFalta(){
   const data=document.getElementById('fa-data').value;
   const colabId=+document.getElementById('fa-colab').value;
   const per=document.getElementById('fa-per').value;
+  const tipo=(document.getElementById('fa-tipo')||{value:'falta'}).value;
   if(!data||!colabId||!per){alert('Preencha data, colaborador e período.');return}
   const colab=colabs().find(c=>c.id===colabId);
   const list=apts();
@@ -1698,7 +1699,7 @@ function addFalta(){
     }
   }
   periodos.forEach(p=>{
-    list.push({id:Date.now()+Math.random(),data,periodo:p,colabId,colabNome:colab?colab.nome:'',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0,falta:true});
+    list.push({id:Date.now()+Math.random(),data,periodo:p,colabId,colabNome:colab?colab.nome:'',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0,falta:true,ferias:tipo==='ferias'});
   });
   ss(K.apts,list);
   renderAptFolders();
