@@ -495,14 +495,20 @@ body:not(.is-admin) .admin-only{display:none!important}
       Registrar Tarde
     </button>
   </div>
-  <!-- FALTA -->
+  <!-- FALTA / FÉRIAS -->
   <div class="card" style="margin-bottom:1.25rem;border-color:rgba(183,28,28,.30)">
     <div class="card-title" style="color:#8B0000;display:flex;align-items:center;gap:6px">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      FALTA
+      FALTA / FÉRIAS
     </div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Registre quando o colaborador não comparecer. O dia não será computado no custo.</p>
-    <div class="fg fg3">
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Registre quando o colaborador não comparecer (falta) ou estiver em <b>férias</b>. O dia não será computado no custo.</p>
+    <div class="fg fg4">
+      <div class="field"><label>Tipo</label>
+        <select id="fa-tipo">
+          <option value="falta">Falta</option>
+          <option value="ferias">Férias</option>
+        </select>
+      </div>
       <div class="field"><label>Data</label><input id="fa-data" type="date"/></div>
       <div class="field"><label>Colaborador</label><select id="fa-colab"><option value="">— selecione —</option></select></div>
       <div class="field"><label>Período</label>
@@ -515,7 +521,7 @@ body:not(.is-admin) .admin-only{display:none!important}
     </div>
     <button class="btn" style="background:#8B0000;color:#fff" onclick="addFalta()">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      Marcar Falta
+      Registrar
     </button>
   </div>
   <!-- FOLDERS -->
