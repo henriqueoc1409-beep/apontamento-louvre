@@ -1794,7 +1794,7 @@ function openEditApt(id){
   const a=apts().find(x=>String(x.id)===String(id));
   if(!a)return;
   document.getElementById('ea-id').value=String(a.id);
-  document.getElementById('ea-tipo').value=a.falta?'falta':'trabalho';
+  document.getElementById('ea-tipo').value=a.ferias?'ferias':(a.falta?'falta':'trabalho');
   document.getElementById('ea-data').value=a.data;
   document.getElementById('ea-periodo').value=a.periodo;
   const sc=document.getElementById('ea-colab');
