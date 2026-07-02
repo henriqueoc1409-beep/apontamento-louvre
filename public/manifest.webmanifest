@@ -1,0 +1,15 @@
+{
+  "name": "Apontamento de Obra — Louvre",
+  "short_name": "Louvre",
+  "description": "Sistema de apontamento de obra — Três Incorporadora.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F6F8FC",
+  "theme_color": "#1010C8",
+  "icons": [
+    { "src": "/tres-logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/tres-logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
