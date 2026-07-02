@@ -1250,9 +1250,11 @@ function renderMonthFolder(){
     const hint=all.length?'Use <b>Duplicar de outro mês</b> ou <b>Incluir colaborador</b> para adicioná-los a este mês.':'Cadastre um colaborador no formulário abaixo.';
     el.innerHTML=`<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px"><div style="margin-bottom:6px"><span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span></div>Nenhum colaborador neste mês.<br/>${hint}</div>`;return;
   }
+  const per=periodo2020(mes);
   el.innerHTML=`
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.6rem">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:.6rem">
       <span class="badge b-purple" style="font-size:12px;padding:4px 10px">📁 ${nm}/${y}</span>
+      <span class="badge b-amber" style="font-size:12px;padding:4px 10px" title="Período de fechamento salarial">🗓️ ${per}</span>
       <span class="badge b-teal" style="font-size:12px;padding:4px 10px">${list.length} colaborador(es) neste mês</span>
     </div>
     <div style="overflow:auto"><table class="tbl">
