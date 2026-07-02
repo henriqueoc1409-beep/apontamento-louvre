@@ -1608,6 +1608,16 @@ function getColabSal(colab,dataStr){
   return{sal:+colab.sal||0,h:+colab.h||1};
 }
 
+// Período de fechamento salarial (20 do mês anterior → 20 do mês)
+function periodo2020(mesStr){
+  if(!mesStr)return'';
+  const [y,mo]=mesStr.split('-').map(Number);
+  const ini=new Date(y,mo-2,20);
+  const fim=new Date(y,mo-1,20);
+  const f=d=>String(d.getDate()).padStart(2,'0')+'/'+['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()];
+  return `20/${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][ini.getMonth()]} → 20/${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][fim.getMonth()]}`;
+}
+
 function renderStatusHoje(){
   const sd=document.getElementById('apt-status-date');
   const d=(sd&&sd.value)?sd.value:today();
