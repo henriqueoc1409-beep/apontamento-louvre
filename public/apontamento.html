@@ -1788,6 +1788,75 @@ function delApt(id){
   renderAptFolders();renderStatusHoje();
 }
 
+function copyPrevDay(){
+  const sd=document.getElementById('apt-status-date');
+  const alvo=(sd&&sd.value)?sd.value:today();
+  // dia anterior (calendar) — pega o último dia com apontamentos até 14 dias atrás
+  const [y,m,d]=alvo.split('-').map(Number);
+  const base=new Date(y,m-1,d);
+  const list=apts();
+  let origem=null;
+  for(let i=1;i<=14;i++){
+    const dt=new Date(base);dt.setDate(base.getDate()-i);
+    const s=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    if(list.some(a=>a.data===s)){origem=s;break}
+  }
+  if(!origem){alert('Não encontrei apontamentos nos últimos 14 dias para copiar.');return}
+  const doOrigem=list.filter(a=>a.data===origem);
+  // agrupar por colaborador para o modal de seleção
+  const porColab={};
+  doOrigem.forEach(a=>{if(!porColab[a.colabId])porColab[a.colabId]={nome:a.colabNome||('Colab '+a.colabId),itens:[]};porColab[a.colabId].itens.push(a)});
+  const ids=Object.keys(porColab);
+  if(!ids.length){alert('Sem apontamentos no dia anterior.');return}
+  const rows=ids.map(id=>{
+    const g=porColab[id];
+    const resumo=g.itens.map(a=>{
+      if(a.ferias)return'🏖 Férias '+a.periodo;
+      if(a.falta)return'✗ Falta '+a.periodo;
+      return (a.periodo==='manha'?'🌅':'🌙')+' '+(a.pkgNome||'')+(a.local?' · '+a.local:'')+' ('+a.horas+'h)';
+    }).join(' | ');
+    return `<label style="display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer">
+      <input type="checkbox" class="cp-chk" value="${id}" checked style="margin-top:3px"/>
+      <div style="flex:1;font-size:12.5px"><b>${g.nome}</b><br/><span style="color:var(--text2)">${resumo}</span></div>
+    </label>`;
+  }).join('');
+  const [yo,mo,doo]=origem.split('-');
+  const fmt=s=>{const[a,b,c]=s.split('-');return c+'/'+b+'/'+a};
+  const modalHtml=`<div class="modal-overlay open" id="modal-copyprev" style="z-index:9999">
+    <div class="modal" style="max-width:640px">
+      <div class="modal-title">📋 Copiar apontamentos</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">De <b>${fmt(origem)}</b> → para <b>${fmt(alvo)}</b></p>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Colaboradores que já têm apontamento no dia de destino serão ignorados.</p>
+      <div style="max-height:50vh;overflow:auto;margin-bottom:12px">${rows}</div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-copyprev').remove()">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmCopyPrev('${origem}','${alvo}')">Copiar selecionados</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',modalHtml);
+}
+
+function confirmCopyPrev(origem,alvo){
+  const chosen=[...document.querySelectorAll('#modal-copyprev .cp-chk:checked')].map(c=>+c.value);
+  document.getElementById('modal-copyprev').remove();
+  if(!chosen.length){alert('Nenhum colaborador selecionado.');return}
+  const list=apts();
+  const doOrigem=list.filter(a=>a.data===origem&&chosen.includes(a.colabId));
+  let copiados=0,pulados=0;
+  doOrigem.forEach(a=>{
+    if(list.some(x=>x.colabId===a.colabId&&x.data===alvo&&x.periodo===a.periodo)){pulados++;return}
+    const colab=colabs().find(c=>c.id===a.colabId);
+    let custoH=a.custoH,custo=a.custo;
+    if(!a.falta&&colab){const {sal:cs,h:ch}=getColabSal(colab,alvo);custoH=ch?cs/ch:0;custo=custoH*(a.horas||0)}
+    list.push({...a,id:Date.now()+Math.random(),data:alvo,custoH,custo});
+    copiados++;
+  });
+  ss(K.apts,list);
+  renderAptFolders();renderStatusHoje();
+  alert(`✓ ${copiados} apontamento(s) copiado(s).${pulados?` ${pulados} pulado(s) (já existiam).`:''}`);
+}
+
 const LOCAIS_OBRA=['FUNDAÇÃO','SUBSOLO 2','SUBSOLO 1','TERREO','G1','G2','3º LAZER','3º TIPO','4º TIPO','5º TIPO','6º TIPO','7º TIPO','8º TIPO','9º TIPO','10º TIPO','11º TIPO','12º TIPO','13º TIPO','14º TIPO','15º TIPO','16º TIPO','17º TIPO','18º TIPO','19º TIPO','20º TIPO','21º TIPO','22º TIPO','23º TIPO','24º TIPO','25º TIPO','26º TIPO','27º TIPO','ROOFTOP','ÁTICO','HALL','SST','TESTES','FACHADA'];
 
 function openEditApt(id){
