@@ -1765,7 +1765,7 @@ function addFalta(){
     }
   }
   periodos.forEach(p=>{
-    list.push({id:Date.now()+Math.random(),data,periodo:p,colabId,colabNome:colab?colab.nome:'',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0,falta:true,ferias:tipo==='ferias'});
+    list.push({id:Date.now()+Math.random(),data,periodo:p,colabId,colabNome:colab?colab.nome:'',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0,falta:true,ferias:tipo==='ferias',atestado:tipo==='atestado'});
   });
   ss(K.apts,list);
   renderAptFolders();
