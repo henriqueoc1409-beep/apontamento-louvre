@@ -1815,7 +1815,7 @@ function renderPeriodSection(items,periodo){
     ${items.length?items.map(a=>a.falta?`<div class="apt-row">
       <div class="apt-info">
         <span class="apt-name">${a.colabNome}</span>
-        <span class="badge ${a.ferias?'b-amber':'b-red'}">${a.ferias?'🏖 FÉRIAS':'FALTA'}</span>
+        <span class="badge ${a.ferias?'b-amber':(a.atestado?'b-purple':'b-red')}">${a.ferias?'🏖 FÉRIAS':(a.atestado?'📄 ATESTADO':'FALTA')}</span>
         <span style="font-size:12px;color:var(--text2)">sem custo</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -1875,6 +1875,7 @@ function copyPrevDay(){
     const g=porColab[id];
     const resumo=g.itens.map(a=>{
       if(a.ferias)return'🏖 Férias '+a.periodo;
+      if(a.atestado)return'📄 Atestado '+a.periodo;
       if(a.falta)return'✗ Falta '+a.periodo;
       return (a.periodo==='manha'?'🌅':'🌙')+' '+(a.pkgNome||'')+(a.local?' · '+a.local:'')+' ('+a.horas+'h)';
     }).join(' | ');
@@ -1926,7 +1927,7 @@ function openEditApt(id){
   const a=apts().find(x=>String(x.id)===String(id));
   if(!a)return;
   document.getElementById('ea-id').value=String(a.id);
-  document.getElementById('ea-tipo').value=a.ferias?'ferias':(a.falta?'falta':'trabalho');
+  document.getElementById('ea-tipo').value=a.ferias?'ferias':(a.atestado?'atestado':(a.falta?'falta':'trabalho'));
   document.getElementById('ea-data').value=a.data;
   document.getElementById('ea-periodo').value=a.periodo;
   const sc=document.getElementById('ea-colab');
@@ -1968,7 +1969,7 @@ function loadEaSvcs(){
 
 function toggleEaFalta(){
   const t=document.getElementById('ea-tipo').value;
-  const isAus=t==='falta'||t==='ferias';
+  const isAus=t==='falta'||t==='ferias'||t==='atestado';
   document.getElementById('ea-trabalho-fields').style.display=isAus?'none':'';
 }
 
@@ -1987,10 +1988,10 @@ function saveEditApt(){
   if(dup){alert('Já existe apontamento desse colaborador para esse período/dia.');return}
   const colab=colabs().find(c=>c.id===colabId);
   const base={...list[idx],data,periodo,colabId,colabNome:colab?colab.nome:list[idx].colabNome};
-  if(tipo==='falta'||tipo==='ferias'){
-    list[idx]={...base,falta:true,ferias:tipo==='ferias',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0};
+  if(tipo==='falta'||tipo==='ferias'||tipo==='atestado'){
+    list[idx]={...base,falta:true,ferias:tipo==='ferias',atestado:tipo==='atestado',pkgId:0,pkgNome:'',svc:'',local:'',horas:0,custoH:0,custo:0};
   }else{
-    delete base.ferias;
+    delete base.ferias;delete base.atestado;
     const pkgId=+document.getElementById('ea-pkg').value;
     const svc=document.getElementById('ea-svc').value;
     const local=document.getElementById('ea-local').value;
