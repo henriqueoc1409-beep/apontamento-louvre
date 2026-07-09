@@ -1115,8 +1115,8 @@ function renderColabs(){
   el.innerHTML=`<div class="card" style="padding:0;overflow:hidden">
     <table class="tbl">
       <thead><tr><th>Nome</th><th>Função</th><th>Salário atual</th><th>Carga h/mês</th><th>Custo/h</th><th>Histórico</th><th></th></tr></thead>
-      <tbody>${list.map(c=>`<tr>
-        <td style="font-weight:600">${c.nome}</td>
+      <tbody>${list.map(c=>`<tr draggable="true" ondragstart="colabDragStart(event,${c.id})" ondragend="colabDragEnd(event)" style="cursor:grab" title="Arraste para a Pasta mensal para incluir neste mês">
+        <td style="font-weight:600"><span style="color:var(--text3);margin-right:6px;user-select:none">⋮⋮</span>${c.nome}</td>
         <td><span class="badge b-teal">${c.func||'—'}</span></td>
         <td>${BRL(c.sal)}</td>
         <td>${c.h}h</td>
