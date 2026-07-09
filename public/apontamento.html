@@ -1055,6 +1055,18 @@ const diaSemana=d=>{if(!d)return'';const dias=['Domingo','Segunda-feira','Terça
 function colabs(){return(ls(K.colabs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function pkgs(){return(ls(K.pkgs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function apts(){return ls(K.apts)||[]}
+function workSats(){return ls(K.worksats)||[]}
+function isWorkSat(dt){return (ls(K.worksats)||[]).includes(dt)}
+function toggleWorkSat(dt){
+  if(!isAdmin()){alert('Apenas o administrador pode marcar sábados de trabalho.');return}
+  const d=new Date(dt+'T00:00:00');
+  if(d.getDay()!==6){alert('Apenas sábados podem ser marcados.');return}
+  const list=ls(K.worksats)||[];
+  const i=list.indexOf(dt);
+  if(i>=0)list.splice(i,1);else list.push(dt);
+  ss(K.worksats,list);
+  renderDashCalendar();renderMissingDays();
+}
 function locs(){return(ls(K.locs)||DEFAULT_LOCS||[]).sort((a,b)=>a.localeCompare(b))}
 
 // FUNÇÕES (cargos) — lista editável
