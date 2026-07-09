@@ -815,7 +815,7 @@ async function hydrateCloud(){
 }
 
 async function migrateLegacyToCloud(){
-  const keysToMigrate=[K.colabs,K.pkgs,K.apts,K.pending,K.funcs,K.locs];
+  const keysToMigrate=[K.colabs,K.pkgs,K.apts,K.pending,K.funcs,K.locs,K.worksats];
   const flag='lv_cloud_migrated_v1';
   if(localStorage.getItem(flag)==='1') return;
   const rows=[];
