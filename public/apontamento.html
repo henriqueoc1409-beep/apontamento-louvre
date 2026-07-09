@@ -515,14 +515,15 @@ body:not(.is-admin) .admin-only{display:none!important}
   <div class="card" style="margin-bottom:1.25rem;border-color:rgba(183,28,28,.30)">
     <div class="card-title" style="color:#8B0000;display:flex;align-items:center;gap:6px">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      FALTA / FÉRIAS
+      FALTA / FÉRIAS / ATESTADO
     </div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Registre quando o colaborador não comparecer (falta) ou estiver em <b>férias</b>. O dia não será computado no custo.</p>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Registre quando o colaborador não comparecer (<b>falta</b>), estiver em <b>férias</b> ou apresentar <b>atestado</b>. O dia não será computado no custo.</p>
     <div class="fg fg4">
       <div class="field"><label>Tipo</label>
         <select id="fa-tipo">
           <option value="falta">Falta</option>
           <option value="ferias">Férias</option>
+          <option value="atestado">Atestado</option>
         </select>
       </div>
       <div class="field"><label>Data</label><input id="fa-data" type="date"/></div>
@@ -628,6 +629,7 @@ body:not(.is-admin) .admin-only{display:none!important}
           <option value="trabalho">Trabalho</option>
           <option value="falta">Falta</option>
           <option value="ferias">Férias</option>
+          <option value="atestado">Atestado</option>
         </select>
       </div>
       <div class="field"><label>Data</label><input id="ea-data" type="date"/></div>
