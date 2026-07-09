@@ -349,8 +349,11 @@ body:not(.is-admin) .admin-only{display:none!important}
       <b>📅 Período de fechamento (20 a 20):</b> o salário do mês corresponde ao intervalo <b>do dia 20 do mês anterior ao dia 20 do mês selecionado</b>.<br/>
       Exemplo: <b>Julho</b> = 20/jun → 20/jul. Ajuste o salário de cada colaborador considerando esse ciclo de pagamento.
     </div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Cada colaborador fica salvo somente no mês em que foi incluído. Use <b>Duplicar de outro mês</b> para trazer todos de uma vez ou <b>Incluir colaborador</b> para adicionar individualmente, ajustando o salário do mês.</p>
-    <div id="mf-list"></div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Cada colaborador fica salvo somente no mês em que foi incluído. Use <b>Duplicar de outro mês</b> para trazer todos de uma vez, <b>Incluir colaborador</b> para adicionar individualmente, ou <b>arraste um colaborador cadastrado</b> (lista abaixo) para dentro desta pasta.</p>
+    <div id="mf-list"
+         ondragover="mfDragOver(event)"
+         ondragleave="mfDragLeave(event)"
+         ondrop="mfDrop(event)"></div>
   </div>
 
   <div class="card" style="margin-bottom:1.25rem">
@@ -372,6 +375,10 @@ body:not(.is-admin) .admin-only{display:none!important}
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Adicionar colaborador
     </button>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 .5rem">
+    <div class="card-title" style="margin-bottom:0">👥 Colaboradores cadastrados</div>
+    <span style="font-size:12px;color:var(--text2)">💡 Arraste um nome para a <b>Pasta mensal</b> acima para incluir no mês selecionado.</span>
   </div>
   <div id="colab-list"></div>
 </div>
