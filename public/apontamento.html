@@ -1399,6 +1399,50 @@ function confirmAddMes(){
 
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 
+// ── Drag & drop: Colaborador cadastrado → Pasta mensal ──
+let _dragColabId=null;
+function colabDragStart(e,id){
+  _dragColabId=id;
+  try{e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain',String(id));}catch(_){}
+  const mf=document.getElementById('mf-list');
+  if(mf) mf.classList.add('mf-drop-hint');
+}
+function colabDragEnd(){
+  _dragColabId=null;
+  const mf=document.getElementById('mf-list');
+  if(mf){mf.classList.remove('mf-drop-hint');mf.classList.remove('mf-drop-over');}
+}
+function mfDragOver(e){
+  if(_dragColabId==null)return;
+  e.preventDefault();
+  try{e.dataTransfer.dropEffect='copy'}catch(_){}
+  e.currentTarget.classList.add('mf-drop-over');
+}
+function mfDragLeave(e){
+  if(e.currentTarget.contains(e.relatedTarget))return;
+  e.currentTarget.classList.remove('mf-drop-over');
+}
+function mfDrop(e){
+  e.preventDefault();
+  const el=e.currentTarget;el.classList.remove('mf-drop-over');el.classList.remove('mf-drop-hint');
+  const id=_dragColabId!=null?_dragColabId:+((e.dataTransfer&&e.dataTransfer.getData('text/plain'))||0);
+  _dragColabId=null;
+  if(!id)return;
+  const mes=mfMes();
+  const list=ls(K.colabs)||[];
+  const idx=list.findIndex(c=>c.id===id);
+  if(idx<0)return;
+  const c=list[idx];
+  if((c.salHist||[]).some(s=>s.mes===mes)){alert(c.nome+' já está na pasta deste mês.');return}
+  const v=salForMonth(c,mes);
+  const hist=(c.salHist||[]).slice();
+  hist.push({mes,sal:v.sal,h:v.h});
+  list[idx]={...c,salHist:hist};
+  ss(K.colabs,list);
+  recalcAptsForColab(id);
+  renderMonthFolder();renderColabs();
+}
+
 // ══════════════════════════════════
 // PACOTES
 // ══════════════════════════════════
