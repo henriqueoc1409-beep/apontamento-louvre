@@ -201,6 +201,7 @@ body:not(.is-admin) .admin-only{display:none!important}
 .dash-day.empty{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
 .dash-day.future{background:transparent;color:var(--text3);border:1px dashed var(--border)}
 .dash-day.today{box-shadow:0 0 0 2px var(--accent)}
+.dash-day.worksat::after{content:'★';position:absolute;top:1px;right:3px;font-size:9px;color:#1010C8;line-height:1}
 .legend{display:flex;gap:16px;font-size:12px;color:var(--text2);margin-bottom:1rem;flex-wrap:wrap}
 .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}
 
@@ -753,7 +754,8 @@ body:not(.is-admin) .admin-only{display:none!important}
 // ══════════════════════════════════
 const K={
   users:'lv_users', sessions:'lv_session',
-  colabs:'lv_colabs', pkgs:'lv_pkgs', apts:'lv_apts', pending:'lv_pending', funcs:'lv_funcs', locs:'lv_locs'
+  colabs:'lv_colabs', pkgs:'lv_pkgs', apts:'lv_apts', pending:'lv_pending', funcs:'lv_funcs', locs:'lv_locs',
+  worksats:'lv_worksats'
 };
 const ADMIN_EMAIL='henrique@tresincorporadora.com.br';
 
@@ -813,7 +815,7 @@ async function hydrateCloud(){
 }
 
 async function migrateLegacyToCloud(){
-  const keysToMigrate=[K.colabs,K.pkgs,K.apts,K.pending,K.funcs,K.locs];
+  const keysToMigrate=[K.colabs,K.pkgs,K.apts,K.pending,K.funcs,K.locs,K.worksats];
   const flag='lv_cloud_migrated_v1';
   if(localStorage.getItem(flag)==='1') return;
   const rows=[];
@@ -1053,6 +1055,18 @@ const diaSemana=d=>{if(!d)return'';const dias=['Domingo','Segunda-feira','Terça
 function colabs(){return(ls(K.colabs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function pkgs(){return(ls(K.pkgs)||[]).sort((a,b)=>a.nome.localeCompare(b.nome))}
 function apts(){return ls(K.apts)||[]}
+function workSats(){return ls(K.worksats)||[]}
+function isWorkSat(dt){return (ls(K.worksats)||[]).includes(dt)}
+function toggleWorkSat(dt){
+  if(!isAdmin()){alert('Apenas o administrador pode marcar sábados de trabalho.');return}
+  const d=new Date(dt+'T00:00:00');
+  if(d.getDay()!==6){alert('Apenas sábados podem ser marcados.');return}
+  const list=ls(K.worksats)||[];
+  const i=list.indexOf(dt);
+  if(i>=0)list.splice(i,1);else list.push(dt);
+  ss(K.worksats,list);
+  renderDashCalendar();renderMissingDays();
+}
 function locs(){return(ls(K.locs)||DEFAULT_LOCS||[]).sort((a,b)=>a.localeCompare(b))}
 
 // FUNÇÕES (cargos) — lista editável
@@ -2234,9 +2248,13 @@ function renderDashCalendar(){
     const isTod=dt===today();
     const isFuture=dt>tod;
     const isSunday=new Date(y,m-1,d).getDay()===0;
+    const dow=new Date(y,m-1,d).getDay();
+    const isSat=dow===6;
+    const workSat=isSat&&isWorkSat(dt);
+    const restDay=isSunday||(isSat&&!workSat);
     let cls;
     if(isFuture){cls='future'}
-    else if(isSunday&&!dayApts.length){cls='empty'}
+    else if(restDay&&!dayApts.length){cls='empty'}
     else if(!clist.length){cls='empty'}
     else if(!dayApts.length){cls='has-missing'}
     else{
@@ -2244,7 +2262,10 @@ function renderDashCalendar(){
       const someAptados=clist.some(c=>dayApts.some(a=>a.colabId===c.id));
       cls=full?'has-full':someAptados?'has-partial':'has-missing';
     }
-    html+=`<div class="dash-day ${cls}${isTod?' today':''}" title="${fmtD(dt)}">${d}</div>`;
+    const satCls=workSat?' worksat':'';
+    const satTitle=isSat?(workSat?' • Sábado de trabalho (clique p/ remover)':' • Sábado de folga (clique p/ marcar como trabalho)'):'';
+    const onclk=isSat?` onclick="toggleWorkSat('${dt}')"`:'';
+    html+=`<div class="dash-day ${cls}${isTod?' today':''}${satCls}" title="${fmtD(dt)}${satTitle}"${onclk}>${d}</div>`;
   }
   el.innerHTML=html;
 }
@@ -2257,9 +2278,10 @@ function renderMissingDays(){
   for(let i=0;i<30;i++){const d=new Date();d.setDate(d.getDate()-i);today30.push(d.toISOString().slice(0,10))}
   const missing=today30.filter(d=>{
     const dayApts=list.filter(a=>a.data===d);
-    // Ignorar domingos sem apontamento (somente conta se houve trabalho registrado)
-    const isSunday=new Date(d+'T00:00:00').getDay()===0;
-    if(isSunday&&!dayApts.length)return false;
+    // Ignorar domingos e sábados (exceto sábados marcados como trabalho) sem apontamento
+    const dow=new Date(d+'T00:00:00').getDay();
+    const restDay=dow===0||(dow===6&&!isWorkSat(d));
+    if(restDay&&!dayApts.length)return false;
     if(!dayApts.length)return true;
     return clist.some(c=>!dayApts.some(a=>a.colabId===c.id));
   });
