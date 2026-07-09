@@ -1701,13 +1701,14 @@ function renderStatusHoje(){
     const pm=aptHoje.find(a=>a.colabId===c.id&&a.periodo==='tarde');
     const amF=am&&am.falta, pmF=pm&&pm.falta;
     const amFe=am&&am.ferias, pmFe=pm&&pm.ferias;
-    const lbl=(f,fe,per)=>fe?('🏖 Férias '+per):(f?('✗ Falta '+per):'');
+    const amAt=am&&am.atestado, pmAt=pm&&pm.atestado;
     let cls,txt;
-    if(amFe&&pmFe){cls='status-warn';txt='🏖 Férias (dia)'}
+    if(amAt&&pmAt){cls='status-warn';txt='📄 Atestado (dia)'}
+    else if(amFe&&pmFe){cls='status-warn';txt='🏖 Férias (dia)'}
     else if(amF&&pmF){cls='status-missing';txt='✗ Falta (dia)'}
-    else if(am&&pm){cls='status-ok';txt='✓ Manhã e Tarde'+((amF||pmF||amFe||pmFe)?' (c/ ausência)':'')}
-    else if(am){cls='status-warn';txt=amFe?'🏖 Férias manhã':(amF?'✗ Falta manhã':'⚑ Só manhã')}
-    else if(pm){cls='status-warn';txt=pmFe?'🏖 Férias tarde':(pmF?'✗ Falta tarde':'⚑ Só tarde')}
+    else if(am&&pm){cls='status-ok';txt='✓ Manhã e Tarde'+((amF||pmF||amFe||pmFe||amAt||pmAt)?' (c/ ausência)':'')}
+    else if(am){cls='status-warn';txt=amAt?'📄 Atestado manhã':(amFe?'🏖 Férias manhã':(amF?'✗ Falta manhã':'⚑ Só manhã'))}
+    else if(pm){cls='status-warn';txt=pmAt?'📄 Atestado tarde':(pmFe?'🏖 Férias tarde':(pmF?'✗ Falta tarde':'⚑ Só tarde'))}
     else{cls='status-missing';txt='✗ Sem apontamento'}
     return`<div class="status-card ${cls}"><div class="status-name">${c.nome}</div><div class="status-detail">${txt}</div></div>`;
   }).join('');
