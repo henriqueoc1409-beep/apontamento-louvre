@@ -2152,11 +2152,15 @@ function renderRel(){
 function exportExcel(){
   const dados=getRelDados();
   if(!dados.length){alert('Nenhum dado para exportar.');return}
+  const tipoDe=a=>a.ferias?'Férias':(a.atestado?'Atestado':(a.falta?'Falta':'Trabalho'));
   const rows=dados.map(a=>({
     'Data':fmtD(a.data),'Período':a.periodo==='manha'?'Manhã':'Tarde',
-    'Colaborador':a.colabNome,'Pacote':a.pkgNome,
-    'Serviço':a.svc||'','Local':a.local||'',
-    'Horas':a.horas,'Custo/h':+a.custoH.toFixed(2),'Custo Total':+a.custo.toFixed(2)
+    'Colaborador':a.colabNome,'Tipo':tipoDe(a),
+    'Pacote':a.falta?'':a.pkgNome,
+    'Serviço':a.falta?'':(a.svc||''),'Local':a.falta?'':(a.local||''),
+    'Horas':a.falta?0:a.horas,
+    'Custo/h':a.falta?0:+a.custoH.toFixed(2),
+    'Custo Total':a.falta?0:+a.custo.toFixed(2)
   }));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();
@@ -2172,8 +2176,13 @@ function exportPDF(){
   doc.setFontSize(14);doc.text('Apontamento de Obra — Louvre',14,15);
   doc.setFontSize(9);doc.setTextColor(120);
   doc.text('Exportado em '+new Date().toLocaleDateString('pt-BR'),14,22);
-  const rows=dados.map(a=>[fmtD(a.data),a.periodo==='manha'?'Manhã':'Tarde',a.colabNome,a.pkgNome,a.svc||'',a.local||'',a.horas+'h','R$ '+a.custo.toFixed(2)]);
-  doc.autoTable({head:[['Data','Período','Colaborador','Pacote','Serviço','Local','Horas','Custo']],body:rows,startY:28,styles:{fontSize:8,cellPadding:3},headStyles:{fillColor:[26,48,96]}});
+  const tipoDe=a=>a.ferias?'Férias':(a.atestado?'Atestado':(a.falta?'Falta':'Trabalho'));
+  const rows=dados.map(a=>[
+    fmtD(a.data),a.periodo==='manha'?'Manhã':'Tarde',a.colabNome,tipoDe(a),
+    a.falta?'':a.pkgNome,a.falta?'':(a.svc||''),a.falta?'':(a.local||''),
+    a.falta?'-':(a.horas+'h'),a.falta?'-':('R$ '+a.custo.toFixed(2))
+  ]);
+  doc.autoTable({head:[['Data','Período','Colaborador','Tipo','Pacote','Serviço','Local','Horas','Custo']],body:rows,startY:28,styles:{fontSize:8,cellPadding:3},headStyles:{fillColor:[26,48,96]}});
   doc.save('Apontamento_Louvre.pdf');
 }
 
