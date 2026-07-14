@@ -1082,6 +1082,29 @@ function goPage(name){
   if(name==='relatorio'){populateRelFilters();renderRel()}
   if(name==='dashboard'){renderDash()}
   if(name==='admin'){renderAdmin()}
+  currentPageName=name;
+  toggleSidebar(false);
+  try{window.scrollTo({top:0,behavior:'instant'})}catch{ window.scrollTo(0,0) }
+}
+
+let currentPageName='dashboard';
+function toggleSidebar(force){
+  const sb=document.getElementById('sidebar');
+  const bd=document.getElementById('sidebar-backdrop');
+  if(!sb) return;
+  const willOpen = typeof force==='boolean' ? force : !sb.classList.contains('open');
+  sb.classList.toggle('open',willOpen);
+  if(bd) bd.classList.toggle('open',willOpen);
+}
+
+function rerenderCurrentPage(){
+  try{
+    if(currentPageName==='dashboard') renderDash();
+    else if(currentPageName==='colaboradores'){populateFuncSelects();renderColabs();renderMonthFolder();}
+    else if(currentPageName==='pacotes'){renderPkgs();renderLocList();populateLocFilters();populatePkgLocCheckboxes();}
+    else if(currentPageName==='apontamento'){populateAptSelects();renderAptFolders();renderStatusHoje();}
+    else if(currentPageName==='relatorio'){populateRelFilters();renderRel();}
+  }catch(e){ console.warn('rerender falhou',e) }
 }
 
 // ══════════════════════════════════
