@@ -121,6 +121,20 @@ function RootShell({ children }: { children: ReactNode }) {
       <body>
         {children}
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                if (!('serviceWorker' in navigator)) return;
+                var h = location.hostname;
+                var isDevOrPreview = h === 'localhost' || h === '127.0.0.1' || h.startsWith('id-preview--') || h.startsWith('preview--') || h.endsWith('.lovableproject.com') || h.endsWith('.lovableproject-dev.com') || h === 'beta.lovable.dev' || h.endsWith('.beta.lovable.dev') || h === 'lovableproject.com' || h === 'lovableproject-dev.com';
+                if (isDevOrPreview) return;
+                if (new URLSearchParams(location.search).has('sw')) return;
+                navigator.serviceWorker.register('/sw.js').catch(function(err){ console.error('SW registration failed', err); });
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );
