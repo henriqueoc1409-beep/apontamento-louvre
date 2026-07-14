@@ -944,7 +944,34 @@ async function bootAuthenticated(user){
   currentUser={id:user.id,email:prof.email,nome:prof.nome||prof.email.split('@')[0],aprovado:true};
   await hydrateCloud();
   await refreshProfilesCache();
+  setupRealtimeSync();
   startApp();
+}
+
+// ══════════════════════════════════
+// SINCRONIZAÇÃO EM TEMPO REAL
+// ══════════════════════════════════
+let realtimeChannel=null;
+let rerenderTimer=null;
+function setupRealtimeSync(){
+  if(realtimeChannel){ try{ sb.removeChannel(realtimeChannel) }catch{} realtimeChannel=null; }
+  realtimeChannel = sb.channel('app_data_sync')
+    .on('postgres_changes',{event:'*',schema:'public',table:'app_data'},(payload)=>{
+      try{
+        const row = payload.new || payload.old;
+        if(!row||!row.key) return;
+        // Ignora eco do próprio dispositivo
+        if(payload.new && payload.new.updated_by && currentUser && payload.new.updated_by===currentUser.id) return;
+        if(payload.eventType==='DELETE'){
+          delete dataCache[row.key];
+        }else{
+          dataCache[row.key]=payload.new.value;
+        }
+        clearTimeout(rerenderTimer);
+        rerenderTimer=setTimeout(rerenderCurrentPage,250);
+      }catch(e){ console.warn('realtime payload err',e) }
+    })
+    .subscribe();
 }
 
 // Puxa a lista de perfis para o cache (usada pelo painel Admin e badge)
