@@ -77,16 +77,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Apontamento" },
-      { name: "description", content: "Apontamento Louvre Du Parc" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Apontamento" },
-      { property: "og:description", content: "Apontamento Louvre Du Parc" },
+      { title: "Apontamento de Obra — Louvre | Três Incorporadora" },
+      { name: "description", content: "Sistema de apontamento de obra do empreendimento Louvre — Três Incorporadora." },
+      { name: "author", content: "Três Incorporadora" },
+      { name: "theme-color", content: "#1010C8" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Louvre" },
+      { property: "og:title", content: "Apontamento de Obra — Louvre" },
+      { property: "og:description", content: "Sistema de apontamento de obra do empreendimento Louvre — Três Incorporadora." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Apontamento" },
-      { name: "twitter:description", content: "Apontamento Louvre Du Parc" },
+      { name: "twitter:site", content: "@tresincorporadora" },
+      { name: "twitter:title", content: "Apontamento de Obra — Louvre" },
+      { name: "twitter:description", content: "Sistema de apontamento de obra do empreendimento Louvre — Três Incorporadora." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/yVu5dNGhHebvEzSOal3wsYr44XY2/social-images/social-1781032050898-Três_Logotipo_Blueprint.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/yVu5dNGhHebvEzSOal3wsYr44XY2/social-images/social-1781032050898-Três_Logotipo_Blueprint.webp" },
     ],
@@ -95,6 +100,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -105,13 +114,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>
       <body>
         {children}
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                if (!('serviceWorker' in navigator)) return;
+                var h = location.hostname;
+                var isDevOrPreview = h === 'localhost' || h === '127.0.0.1' || h.startsWith('id-preview--') || h.startsWith('preview--') || h.endsWith('.lovableproject.com') || h.endsWith('.lovableproject-dev.com') || h === 'beta.lovable.dev' || h.endsWith('.beta.lovable.dev') || h === 'lovableproject.com' || h === 'lovableproject-dev.com';
+                if (isDevOrPreview) return;
+                if (new URLSearchParams(location.search).has('sw')) return;
+                navigator.serviceWorker.register('/sw.js').catch(function(err){ console.error('SW registration failed', err); });
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );
