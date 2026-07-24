@@ -2152,6 +2152,13 @@ function getRelDados(){
   if(locF)dados=dados.filter(a=>a.local===locF);
   if(colabF)dados=dados.filter(a=>a.colabId==colabF);
   if(svcF)dados=dados.filter(a=>a.svc===svcF);
+  // Sempre ordena da data mais antiga para a mais nova (e manhã antes de tarde)
+  dados.sort((a,b)=>{
+    if(a.data!==b.data)return a.data<b.data?-1:1;
+    const pa=a.periodo==='manha'?0:1, pb=b.periodo==='manha'?0:1;
+    if(pa!==pb)return pa-pb;
+    return (a.colabNome||'').localeCompare(b.colabNome||'');
+  });
   return dados;
 }
 
@@ -2242,6 +2249,7 @@ function renderRel(){
 function exportExcel(){
   const dados=getRelDados();
   if(!dados.length){alert('Nenhum dado para exportar.');return}
+  if(typeof XLSX==='undefined'){alert('Biblioteca de Excel ainda carregando. Aguarde e tente novamente.');return}
   const tipoDe=a=>a.ferias?'Férias':(a.atestado?'Atestado':(a.falta?'Falta':'Trabalho'));
   const rows=dados.map(a=>({
     'Data':fmtD(a.data),'Período':a.periodo==='manha'?'Manhã':'Tarde',
@@ -2252,10 +2260,19 @@ function exportExcel(){
     'Custo/h':a.falta?0:+a.custoH.toFixed(2),
     'Custo Total':a.falta?0:+a.custo.toFixed(2)
   }));
-  const ws=XLSX.utils.json_to_sheet(rows);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,'Apontamentos',ws);
-  XLSX.writeFile(wb,'Apontamento_Louvre.xlsx');
+  try{
+    const ws=XLSX.utils.json_to_sheet(rows);
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,'Apontamentos',ws);
+    // Gera via Blob + anchor click para funcionar em iframe, mobile e PWA
+    const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='Apontamento_Louvre.xlsx';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+  }catch(e){console.error('Erro ao exportar Excel:',e);alert('Erro ao exportar Excel: '+e.message);}
 }
 
 function exportPDF(){
