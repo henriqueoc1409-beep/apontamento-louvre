@@ -1201,7 +1201,7 @@ function addColab(){
   if(!sal||!h){alert('Informe salário e carga horária');return}
   const mes=mfMes();
   const list=ls(K.colabs)||[];
-  list.push({id:Date.now(),nome,func,sal,h,salHist:[{mes,sal,h}]});
+  list.push({id:Date.now(),nome,func,sal,h,salHist:[{mes,sal,h,desde:desdeFor(mes)}]});
   ss(K.colabs,list);
   ['c-nome','c-sal'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('c-func').value='';
@@ -1387,8 +1387,9 @@ function renderMonthFolder(){
       <span class="badge b-amber" style="font-size:12px;padding:4px 10px" title="Período de fechamento salarial">🗓️ ${per}</span>
       <span class="badge b-teal" style="font-size:12px;padding:4px 10px">${list.length} colaborador(es) neste mês</span>
     </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Colaboradores só são cobrados no dashboard/status a partir da data em <strong>“Ativo desde”</strong> — dias anteriores seguem sem eles.</div>
     <div style="overflow:auto"><table class="tbl">
-      <thead><tr><th>Colaborador</th><th>Função</th><th>Salário do mês (R$)</th><th>Carga (h)</th><th>Custo/h</th><th></th></tr></thead>
+      <thead><tr><th>Colaborador</th><th>Função</th><th>Salário do mês (R$)</th><th>Carga (h)</th><th title="A partir desta data o colaborador é cobrado no apontamento/dashboard">Ativo desde</th><th>Custo/h</th><th></th></tr></thead>
       <tbody>${list.map(c=>{
         const v=salForMonth(c,mes);
         return `<tr>
@@ -1396,6 +1397,7 @@ function renderMonthFolder(){
           <td><span class="badge b-teal">${c.func||'—'}</span></td>
           <td><input id="mf-sal-${c.id}" type="number" step="0.01" value="${v.sal}" style="width:120px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
           <td><input id="mf-h-${c.id}" type="number" value="${v.h}" style="width:80px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
+          <td><input id="mf-desde-${c.id}" type="date" min="${periodoIniISO(mes)}" max="${periodoFimISO(mes)}" value="${((c.salHist||[]).find(s=>s.mes===mes)||{}).desde||periodoIniISO(mes)}" style="width:140px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px"/></td>
           <td><span class="badge b-blue">${BRL(v.sal/(v.h||1))}/h</span></td>
           <td style="white-space:nowrap">
             <button class="btn btn-primary btn-sm" onclick="saveMonthSal(${c.id})">Salvar</button>
@@ -1412,8 +1414,10 @@ function saveMonthSal(id){
   if(!sal||!h){alert('Informe salário e carga.');return}
   const list=ls(K.colabs)||[];
   const idx=list.findIndex(c=>c.id===id);if(idx<0)return;
+  const dEl=document.getElementById('mf-desde-'+id);
+  const desde=(dEl&&dEl.value)||periodoIniISO(mes);
   const hist=(list[idx].salHist||[]).filter(s=>s.mes!==mes);
-  hist.push({mes,sal,h});
+  hist.push({mes,sal,h,desde});
   list[idx]={...list[idx],salHist:hist};
   ss(K.colabs,list);
   recalcAptsForColab(id);
@@ -1497,7 +1501,7 @@ function confirmAddMes(){
   const list=ls(K.colabs)||[];
   const idx=list.findIndex(c=>c.id===id);if(idx<0)return;
   const hist=(list[idx].salHist||[]).filter(s=>s.mes!==mes);
-  hist.push({mes,sal,h});
+  hist.push({mes,sal,h,desde:desdeFor(mes)});
   list[idx]={...list[idx],salHist:hist};
   ss(K.colabs,list);
   recalcAptsForColab(id);
@@ -1544,7 +1548,7 @@ function mfDrop(e){
   if((c.salHist||[]).some(s=>s.mes===mes)){alert(c.nome+' já está na pasta deste mês.');return}
   const v=salForMonth(c,mes);
   const hist=(c.salHist||[]).slice();
-  hist.push({mes,sal:v.sal,h:v.h});
+  hist.push({mes,sal:v.sal,h:v.h,desde:desdeFor(mes)});
   list[idx]={...c,salHist:hist};
   ss(K.colabs,list);
   recalcAptsForColab(id);
@@ -1792,11 +1796,37 @@ function periodo2020(mesStr){
   return `20/${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][ini.getMonth()]} → 20/${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][fim.getMonth()]}`;
 }
 
+function isoOf(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+// Mês da pasta (fechamento dia 20) correspondente a uma data
+function folderMesFor(dateStr){
+  const [y,m,d]=dateStr.split('-').map(Number);
+  const dt=new Date(y,m-1+(d>20?1:0),1);
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+}
+function periodoIniISO(mes){const [y,mo]=mes.split('-').map(Number);return isoOf(new Date(y,mo-2,20))}
+function periodoFimISO(mes){const [y,mo]=mes.split('-').map(Number);return isoOf(new Date(y,mo-1,20))}
+// Data de entrada padrão ao incluir um colaborador na pasta do mês
+function desdeFor(mes){
+  const h=today(),ini=periodoIniISO(mes),fim=periodoFimISO(mes);
+  if(h<ini)return ini;
+  if(h>fim)return ini;
+  return h;
+}
+// Colaboradores ativos (na pasta do mês e já iniciados) numa data
+function colabsAtivosEm(dateStr){
+  const mes=folderMesFor(dateStr);
+  return colabs().filter(c=>{
+    const e=(c.salHist||[]).find(s=>s.mes===mes);
+    if(!e)return false;
+    return !e.desde||e.desde<=dateStr;
+  });
+}
+
 function renderStatusHoje(){
   const sd=document.getElementById('apt-status-date');
   const d=(sd&&sd.value)?sd.value:today();
   const aptHoje=apts().filter(a=>a.data===d);
-  const list=colabs();
+  const list=colabsAtivosEm(d);
   const el=document.getElementById('apt-status-hoje');
   if(!list.length){el.innerHTML='<p style="color:var(--text3);font-size:13px">Nenhum colaborador cadastrado.</p>';return}
   const header=`<div style="grid-column:1/-1;font-size:12px;color:var(--text2);margin-bottom:4px">Mostrando status de <strong style="color:var(--text)">${fmtD(d)} · ${diaSemana(d)}</strong> · ${list.length} colaborador(es)</div>`;
@@ -2306,7 +2336,7 @@ function renderDash(){
   const [hy,hm,hd]=hoje.split('-').map(Number);
   const folderD=new Date(hy,hm-1+(hd>20?1:0),1);
   const folderMes=folderD.getFullYear()+'-'+String(folderD.getMonth()+1).padStart(2,'0');
-  const clist=allColabs.filter(c=>(c.salHist||[]).some(s=>s.mes===folderMes));
+  const clist=allColabs.filter(c=>{const e=(c.salHist||[]).find(s=>s.mes===folderMes);return e&&(!e.desde||e.desde<=hoje)});
   const aptHoje=list.filter(a=>a.data===hoje);
   document.getElementById('dash-metrics').innerHTML=`
     <div class="metric"><div class="metric-label">Total de apontamentos</div><div class="metric-value">${list.length}</div></div>
@@ -2351,7 +2381,6 @@ function renderDashCalendar(){
   const [y,m]=mes.split('-').map(Number);
   const daysInMonth=new Date(y,m,0).getDate();
   const list=apts().filter(a=>a.data.startsWith(mes));
-  const clist=colabs();
   const el=document.getElementById('dash-calendar');
   const dias=['D','S','T','Q','Q','S','S'];
   let html=dias.map(d=>`<div style="text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:3px">${d}</div>`).join('');
@@ -2361,6 +2390,7 @@ function renderDashCalendar(){
   for(let d=1;d<=daysInMonth;d++){
     const dt=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dayApts=list.filter(a=>a.data===dt);
+    const clist=colabsAtivosEm(dt);
     const isTod=dt===today();
     const isFuture=dt>tod;
     const isSunday=new Date(y,m-1,d).getDay()===0;
@@ -2397,9 +2427,11 @@ function renderMissingDays(){
     // Ignorar domingos e sábados (exceto sábados marcados como trabalho) sem apontamento
     const dow=new Date(d+'T00:00:00').getDay();
     const restDay=dow===0||(dow===6&&!isWorkSat(d));
+    const ativos=colabsAtivosEm(d);
     if(restDay&&!dayApts.length)return false;
+    if(!ativos.length)return false;
     if(!dayApts.length)return true;
-    return clist.some(c=>!dayApts.some(a=>a.colabId===c.id));
+    return ativos.some(c=>!dayApts.some(a=>a.colabId===c.id));
   });
   if(!missing.length){document.getElementById('dash-missing-days').innerHTML='<div style="color:#69F0AE;font-size:14px;padding:.5rem 0">✓ Todos os dias dos últimos 30 dias têm apontamento completo!</div>';return}
   document.getElementById('dash-missing-days').innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">${missing.slice(0,15).map(d=>`<span class="badge b-red" style="font-size:13px;padding:5px 12px">${fmtD(d)}</span>`).join('')}${missing.length>15?`<span class="badge b-amber">+${missing.length-15} dias</span>`:''}</div>`;
