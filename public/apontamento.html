@@ -1114,6 +1114,13 @@ function goPage(name){
   try{window.scrollTo({top:0,behavior:'instant'})}catch{ window.scrollTo(0,0) }
 }
 
+function goToAptDate(dt){
+  if(!dt) return;
+  goPage('apontamento');
+  setTimeout(()=>syncAptDate(dt),0);
+}
+
+
 let currentPageName='dashboard';
 function toggleSidebar(force){
   const sb=document.getElementById('sidebar');
