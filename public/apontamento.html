@@ -1114,6 +1114,13 @@ function goPage(name){
   try{window.scrollTo({top:0,behavior:'instant'})}catch{ window.scrollTo(0,0) }
 }
 
+function goToAptDate(dt){
+  if(!dt) return;
+  goPage('apontamento');
+  setTimeout(()=>syncAptDate(dt),0);
+}
+
+
 let currentPageName='dashboard';
 function toggleSidebar(force){
   const sb=document.getElementById('sidebar');
@@ -2409,10 +2416,12 @@ function renderDashCalendar(){
       cls=full?'has-full':someAptados?'has-partial':'has-missing';
     }
     const satCls=workSat?' worksat':'';
-    const satTitle=isSat?(workSat?' • Sábado de trabalho (clique p/ remover)':' • Sábado de folga (clique p/ marcar como trabalho)'):'';
-    const onclk=isSat?` onclick="toggleWorkSat('${dt}')"`:'';
-    html+=`<div class="dash-day ${cls}${isTod?' today':''}${satCls}" title="${fmtD(dt)}${satTitle}"${onclk}>${d}</div>`;
+    const satTitle=isSat?(workSat?' • Sábado de trabalho (clique com o botão direito p/ remover)':' • Sábado de folga (clique com o botão direito p/ marcar como trabalho)'):'';
+    const onclk=` onclick="goToAptDate('${dt}')"`;
+    const onctx=isSat?` oncontextmenu="event.preventDefault();toggleWorkSat('${dt}');return false;"`:'';
+    html+=`<div class="dash-day ${cls}${isTod?' today':''}${satCls}" title="${fmtD(dt)}${satTitle} • Clique para apontar"${onclk}${onctx}>${d}</div>`;
   }
+
   el.innerHTML=html;
 }
 
