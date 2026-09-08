@@ -2482,7 +2482,7 @@ function renderMissingDays(){
     const dayApts=list.filter(a=>a.data===d);
     // Ignorar domingos e sábados (exceto sábados marcados como trabalho) sem apontamento
     const dow=new Date(d+'T00:00:00').getDay();
-    const restDay=dow===0||(dow===6&&!isWorkSat(d));
+    const restDay=dow===0||(dow===6&&!isWorkSat(d))||(isFeriado(d)&&!isWorkHol(d));
     const ativos=colabsAtivosEm(d);
     if(restDay&&!dayApts.length)return false;
     if(!ativos.length)return false;
