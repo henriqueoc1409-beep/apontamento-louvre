@@ -1167,6 +1167,47 @@ function toggleWorkSat(dt){
   ss(K.worksats,list);
   renderDashCalendar();renderMissingDays();
 }
+
+// ── FERIADOS NACIONAIS (até dez/2028) ──────────────
+function _pascoa(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
+  g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,
+  l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+  mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo-1,da);
+}
+function _addDays(d,n){const x=new Date(d.getTime());x.setDate(x.getDate()+n);return x}
+function _iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+let _HOLCACHE=null;
+function feriados(){
+  if(_HOLCACHE)return _HOLCACHE;
+  const map={};
+  const fixos=[['01-01','Confraternização Universal'],['04-21','Tiradentes'],['05-01','Dia do Trabalho'],
+    ['09-07','Independência do Brasil'],['10-12','Nossa Senhora Aparecida'],['11-02','Finados'],
+    ['11-15','Proclamação da República'],['11-20','Consciência Negra'],['12-25','Natal']];
+  for(let y=2024;y<=2028;y++){
+    fixos.forEach(([md,nm])=>{map[`${y}-${md}`]=nm});
+    const p=_pascoa(y);
+    map[_iso(_addDays(p,-48))]='Carnaval';
+    map[_iso(_addDays(p,-47))]='Carnaval';
+    map[_iso(_addDays(p,-46))]='Quarta-feira de Cinzas (até 12h)';
+    map[_iso(_addDays(p,-2))]='Sexta-feira Santa';
+    map[_iso(_addDays(p,60))]='Corpus Christi';
+  }
+  _HOLCACHE=map;return map;
+}
+function feriadoNome(dt){return feriados()[dt]||null}
+function isFeriado(dt){return !!feriados()[dt]}
+function isWorkHol(dt){return (ls(K.workhols)||[]).includes(dt)}
+function toggleWorkHol(dt){
+  if(!isAdmin()){alert('Apenas o administrador pode definir trabalho em feriados.');return}
+  if(!isFeriado(dt)){alert('Esta data não é feriado nacional.');return}
+  const list=ls(K.workhols)||[];
+  const i=list.indexOf(dt);
+  if(i>=0)list.splice(i,1);else list.push(dt);
+  ss(K.workhols,list);
+  renderDashCalendar();renderMissingDays();
+}
 function locs(){return(ls(K.locs)||DEFAULT_LOCS||[]).sort((a,b)=>a.localeCompare(b))}
 
 // FUNÇÕES (cargos) — lista editável
