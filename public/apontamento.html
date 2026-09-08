@@ -2473,6 +2473,26 @@ function renderDashCalendar(){
   }
 
   el.innerHTML=html;
+  renderFeriadosMes(mes);
+}
+
+function renderFeriadosMes(mes){
+  const box=document.getElementById('dash-feriados');
+  if(!box)return;
+  const map=feriados();
+  const dts=Object.keys(map).filter(d=>d.startsWith(mes)).sort();
+  if(!dts.length){box.innerHTML='<div style="font-size:12px;color:var(--text3)">Nenhum feriado nacional neste mês.</div>';return}
+  const adm=isAdmin();
+  box.innerHTML=`<div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--text2)">Feriados nacionais do mês</div>`+
+   dts.map(d=>{
+    const trab=isWorkHol(d);
+    return `<div style="display:flex;align-items:center;gap:8px;justify-content:space-between;padding:5px 8px;border:1px solid var(--border);border-radius:6px;margin-bottom:5px;font-size:12px">
+      <span><b>${fmtD(d)}</b> — ${map[d]}</span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="badge ${trab?'b-blue':'b-red'}">${trab?'Vamos trabalhar':'Sem trabalho'}</span>
+        ${adm?`<button class="btn btn-sm" onclick="toggleWorkHol('${d}')">${trab?'Marcar folga':'Marcar trabalho'}</button>`:''}
+      </span>
+    </div>`}).join('');
 }
 
 function renderMissingDays(){
