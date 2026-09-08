@@ -360,10 +360,13 @@ body:not(.is-admin) .admin-only{display:none!important}
           <span><span class="legend-dot" style="background:#69F0AE"></span>Todos apontados</span>
         <span><span class="legend-dot" style="background:#B45309"></span>Parcial</span>
           <span><span class="legend-dot" style="background:#FF8A80"></span>Falta apontamento</span>
+          <span><span class="legend-dot" style="background:#8B0000"></span>Feriado nacional</span>
+          <span>★ Dia com trabalho</span>
         </div>
         <select id="dash-cal-mes" onchange="renderDashCalendar()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:12px;font-family:var(--font)"></select>
       </div>
       <div class="dash-calendar" id="dash-calendar"></div>
+      <div id="dash-feriados" style="margin-top:.75rem"></div>
     </div>
   </div>
   <div class="card">
