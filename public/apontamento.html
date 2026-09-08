@@ -204,6 +204,9 @@ body:not(.is-admin) .admin-only{display:none!important}
 .dash-day.future{background:transparent;color:var(--text3);border:1px dashed var(--border)}
 .dash-day.today{box-shadow:0 0 0 2px var(--accent)}
 .dash-day.worksat::after{content:'★';position:absolute;top:1px;right:3px;font-size:9px;color:#1010C8;line-height:1}
+.dash-day.holiday{outline:2px dotted #8B0000;outline-offset:-2px}
+.dash-day.holiday::before{content:'●';position:absolute;bottom:0px;left:3px;font-size:8px;color:#8B0000;line-height:1}
+.dash-day.workhol::after{content:'★';position:absolute;top:1px;right:3px;font-size:9px;color:#1010C8;line-height:1}
 .legend{display:flex;gap:16px;font-size:12px;color:var(--text2);margin-bottom:1rem;flex-wrap:wrap}
 .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}
 
@@ -357,10 +360,13 @@ body:not(.is-admin) .admin-only{display:none!important}
           <span><span class="legend-dot" style="background:#69F0AE"></span>Todos apontados</span>
         <span><span class="legend-dot" style="background:#B45309"></span>Parcial</span>
           <span><span class="legend-dot" style="background:#FF8A80"></span>Falta apontamento</span>
+          <span><span class="legend-dot" style="background:#8B0000"></span>Feriado nacional</span>
+          <span>★ Dia com trabalho</span>
         </div>
         <select id="dash-cal-mes" onchange="renderDashCalendar()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:12px;font-family:var(--font)"></select>
       </div>
       <div class="dash-calendar" id="dash-calendar"></div>
+      <div id="dash-feriados" style="margin-top:.75rem"></div>
     </div>
   </div>
   <div class="card">
@@ -795,7 +801,7 @@ body:not(.is-admin) .admin-only{display:none!important}
 const K={
   users:'lv_users', sessions:'lv_session',
   colabs:'lv_colabs', pkgs:'lv_pkgs', apts:'lv_apts', pending:'lv_pending', funcs:'lv_funcs', locs:'lv_locs',
-  worksats:'lv_worksats'
+  worksats:'lv_worksats', workhols:'lv_workhols'
 };
 const ADMIN_EMAIL='henrique@tresincorporadora.com.br';
 
@@ -855,7 +861,7 @@ async function hydrateCloud(){
 }
 
 async function migrateLegacyToCloud(){
-  const keysToMigrate=[K.colabs,K.pkgs,K.apts,K.pending,K.funcs,K.locs,K.worksats];
+  const keysToMigrate=[K.colabs,K.pkgs,K.apts,K.pending,K.funcs,K.locs,K.worksats,K.workhols];
   const flag='lv_cloud_migrated_v1';
   if(localStorage.getItem(flag)==='1') return;
   const rows=[];
@@ -1162,6 +1168,47 @@ function toggleWorkSat(dt){
   const i=list.indexOf(dt);
   if(i>=0)list.splice(i,1);else list.push(dt);
   ss(K.worksats,list);
+  renderDashCalendar();renderMissingDays();
+}
+
+// ── FERIADOS NACIONAIS (até dez/2028) ──────────────
+function _pascoa(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
+  g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,
+  l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+  mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo-1,da);
+}
+function _addDays(d,n){const x=new Date(d.getTime());x.setDate(x.getDate()+n);return x}
+function _iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+let _HOLCACHE=null;
+function feriados(){
+  if(_HOLCACHE)return _HOLCACHE;
+  const map={};
+  const fixos=[['01-01','Confraternização Universal'],['04-21','Tiradentes'],['05-01','Dia do Trabalho'],
+    ['09-07','Independência do Brasil'],['10-12','Nossa Senhora Aparecida'],['11-02','Finados'],
+    ['11-15','Proclamação da República'],['11-20','Consciência Negra'],['12-25','Natal']];
+  for(let y=2024;y<=2028;y++){
+    fixos.forEach(([md,nm])=>{map[`${y}-${md}`]=nm});
+    const p=_pascoa(y);
+    map[_iso(_addDays(p,-48))]='Carnaval';
+    map[_iso(_addDays(p,-47))]='Carnaval';
+    map[_iso(_addDays(p,-46))]='Quarta-feira de Cinzas (até 12h)';
+    map[_iso(_addDays(p,-2))]='Sexta-feira Santa';
+    map[_iso(_addDays(p,60))]='Corpus Christi';
+  }
+  _HOLCACHE=map;return map;
+}
+function feriadoNome(dt){return feriados()[dt]||null}
+function isFeriado(dt){return !!feriados()[dt]}
+function isWorkHol(dt){return (ls(K.workhols)||[]).includes(dt)}
+function toggleWorkHol(dt){
+  if(!isAdmin()){alert('Apenas o administrador pode definir trabalho em feriados.');return}
+  if(!isFeriado(dt)){alert('Esta data não é feriado nacional.');return}
+  const list=ls(K.workhols)||[];
+  const i=list.indexOf(dt);
+  if(i>=0)list.splice(i,1);else list.push(dt);
+  ss(K.workhols,list);
   renderDashCalendar();renderMissingDays();
 }
 function locs(){return(ls(K.locs)||DEFAULT_LOCS||[]).sort((a,b)=>a.localeCompare(b))}
@@ -2404,7 +2451,9 @@ function renderDashCalendar(){
     const dow=new Date(y,m-1,d).getDay();
     const isSat=dow===6;
     const workSat=isSat&&isWorkSat(dt);
-    const restDay=isSunday||(isSat&&!workSat);
+    const holNome=feriadoNome(dt);
+    const workHol=!!holNome&&isWorkHol(dt);
+    const restDay=isSunday||(isSat&&!workSat)||(!!holNome&&!workHol);
     let cls;
     if(isFuture){cls='future'}
     else if(restDay&&!dayApts.length){cls='empty'}
@@ -2415,14 +2464,35 @@ function renderDashCalendar(){
       const someAptados=clist.some(c=>dayApts.some(a=>a.colabId===c.id));
       cls=full?'has-full':someAptados?'has-partial':'has-missing';
     }
-    const satCls=workSat?' worksat':'';
+    const satCls=(workSat?' worksat':'')+(holNome?' holiday':'')+(workHol?' workhol':'');
     const satTitle=isSat?(workSat?' • Sábado de trabalho (clique com o botão direito p/ remover)':' • Sábado de folga (clique com o botão direito p/ marcar como trabalho)'):'';
+    const holTitle=holNome?` • FERIADO: ${holNome}${workHol?' (COM apontamento — clique direito p/ desmarcar)':' (sem trabalho — clique direito p/ marcar que haverá trabalho)'}`:'';
     const onclk=` onclick="goToAptDate('${dt}')"`;
-    const onctx=isSat?` oncontextmenu="event.preventDefault();toggleWorkSat('${dt}');return false;"`:'';
-    html+=`<div class="dash-day ${cls}${isTod?' today':''}${satCls}" title="${fmtD(dt)}${satTitle} • Clique para apontar"${onclk}${onctx}>${d}</div>`;
+    const onctx=holNome?` oncontextmenu="event.preventDefault();toggleWorkHol('${dt}');return false;"`:(isSat?` oncontextmenu="event.preventDefault();toggleWorkSat('${dt}');return false;"`:'');
+    html+=`<div class="dash-day ${cls}${isTod?' today':''}${satCls}" title="${fmtD(dt)}${holTitle}${satTitle} • Clique para apontar"${onclk}${onctx}>${d}</div>`;
   }
 
   el.innerHTML=html;
+  renderFeriadosMes(mes);
+}
+
+function renderFeriadosMes(mes){
+  const box=document.getElementById('dash-feriados');
+  if(!box)return;
+  const map=feriados();
+  const dts=Object.keys(map).filter(d=>d.startsWith(mes)).sort();
+  if(!dts.length){box.innerHTML='<div style="font-size:12px;color:var(--text3)">Nenhum feriado nacional neste mês.</div>';return}
+  const adm=isAdmin();
+  box.innerHTML=`<div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--text2)">Feriados nacionais do mês</div>`+
+   dts.map(d=>{
+    const trab=isWorkHol(d);
+    return `<div style="display:flex;align-items:center;gap:8px;justify-content:space-between;padding:5px 8px;border:1px solid var(--border);border-radius:6px;margin-bottom:5px;font-size:12px">
+      <span><b>${fmtD(d)}</b> — ${map[d]}</span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="badge ${trab?'b-blue':'b-red'}">${trab?'Vamos trabalhar':'Sem trabalho'}</span>
+        ${adm?`<button class="btn btn-sm" onclick="toggleWorkHol('${d}')">${trab?'Marcar folga':'Marcar trabalho'}</button>`:''}
+      </span>
+    </div>`}).join('');
 }
 
 function renderMissingDays(){
@@ -2435,7 +2505,7 @@ function renderMissingDays(){
     const dayApts=list.filter(a=>a.data===d);
     // Ignorar domingos e sábados (exceto sábados marcados como trabalho) sem apontamento
     const dow=new Date(d+'T00:00:00').getDay();
-    const restDay=dow===0||(dow===6&&!isWorkSat(d));
+    const restDay=dow===0||(dow===6&&!isWorkSat(d))||(isFeriado(d)&&!isWorkHol(d));
     const ativos=colabsAtivosEm(d);
     if(restDay&&!dayApts.length)return false;
     if(!ativos.length)return false;
