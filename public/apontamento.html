@@ -2448,7 +2448,9 @@ function renderDashCalendar(){
     const dow=new Date(y,m-1,d).getDay();
     const isSat=dow===6;
     const workSat=isSat&&isWorkSat(dt);
-    const restDay=isSunday||(isSat&&!workSat);
+    const holNome=feriadoNome(dt);
+    const workHol=!!holNome&&isWorkHol(dt);
+    const restDay=isSunday||(isSat&&!workSat)||(!!holNome&&!workHol);
     let cls;
     if(isFuture){cls='future'}
     else if(restDay&&!dayApts.length){cls='empty'}
@@ -2459,11 +2461,12 @@ function renderDashCalendar(){
       const someAptados=clist.some(c=>dayApts.some(a=>a.colabId===c.id));
       cls=full?'has-full':someAptados?'has-partial':'has-missing';
     }
-    const satCls=workSat?' worksat':'';
+    const satCls=(workSat?' worksat':'')+(holNome?' holiday':'')+(workHol?' workhol':'');
     const satTitle=isSat?(workSat?' • Sábado de trabalho (clique com o botão direito p/ remover)':' • Sábado de folga (clique com o botão direito p/ marcar como trabalho)'):'';
+    const holTitle=holNome?` • FERIADO: ${holNome}${workHol?' (COM apontamento — clique direito p/ desmarcar)':' (sem trabalho — clique direito p/ marcar que haverá trabalho)'}`:'';
     const onclk=` onclick="goToAptDate('${dt}')"`;
-    const onctx=isSat?` oncontextmenu="event.preventDefault();toggleWorkSat('${dt}');return false;"`:'';
-    html+=`<div class="dash-day ${cls}${isTod?' today':''}${satCls}" title="${fmtD(dt)}${satTitle} • Clique para apontar"${onclk}${onctx}>${d}</div>`;
+    const onctx=holNome?` oncontextmenu="event.preventDefault();toggleWorkHol('${dt}');return false;"`:(isSat?` oncontextmenu="event.preventDefault();toggleWorkSat('${dt}');return false;"`:'');
+    html+=`<div class="dash-day ${cls}${isTod?' today':''}${satCls}" title="${fmtD(dt)}${holTitle}${satTitle} • Clique para apontar"${onclk}${onctx}>${d}</div>`;
   }
 
   el.innerHTML=html;
